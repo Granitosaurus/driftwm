@@ -217,6 +217,7 @@ pub fn parse_action(s: &str) -> Result<Action, String> {
         "toggle-pin-to-screen" => Ok(Action::TogglePinToScreen),
         "reload-config" => Ok(Action::ReloadConfig),
         "toggle-cursor-pan" => Ok(Action::ToggleCursorPan),
+        "toggle-camera-mode" => Ok(Action::ToggleCameraMode),
         "set-trackpad" => {
             let state = match arg {
                 None => return Err("set-trackpad requires on, off, or toggle".to_string()),
@@ -270,6 +271,7 @@ pub const ACTION_NAMES: &[(&str, &str)] = &[
     ("spawn", "spawn foo"),
     ("suspend-window", "suspend-window"),
     ("switch-layout", "switch-layout next"),
+    ("toggle-camera-mode", "toggle-camera-mode"),
     ("toggle-cursor-pan", "toggle-cursor-pan"),
     ("toggle-fullscreen", "toggle-fullscreen"),
     ("toggle-pin-to-screen", "toggle-pin-to-screen"),
@@ -664,6 +666,7 @@ mod tests {
             Action::SwitchLayout(_) => "switch-layout",
             Action::ReloadConfig => "reload-config",
             Action::ToggleCursorPan => "toggle-cursor-pan",
+            Action::ToggleCameraMode => "toggle-camera-mode",
             Action::SetTrackpad(_) => "set-trackpad",
             Action::Quit => "quit",
         }

@@ -166,6 +166,8 @@ pub struct Config {
     pub trackpad_speed: f64,
     /// Multiplier for mouse drag pan (Mod+LMB or LMB on canvas). 1.0 = direct.
     pub mouse_speed: f64,
+    /// Multiplier for pointer motion while camera mode is on. 1.0 = one screen px of camera per px of motion.
+    pub camera_mode_speed: f64,
     /// Multiplier for touchscreen pan gestures.
     pub touch_speed: f64,
     /// Scroll momentum on a 0–1 scale: 0 = off, 0.5 = default, 1 = floatiest.
@@ -996,6 +998,11 @@ impl Config {
             "navigation.mouse_speed",
             &mut errors,
         );
+        let camera_mode_speed = non_negative(
+            raw.navigation.camera_mode_speed.unwrap_or(3.0),
+            "navigation.camera_mode_speed",
+            &mut errors,
+        );
         let touch_speed = non_negative(
             raw.navigation.touch_speed.unwrap_or(1.0),
             "navigation.touch_speed",
@@ -1098,6 +1105,7 @@ impl Config {
             },
             trackpad_speed,
             mouse_speed,
+            camera_mode_speed,
             touch_speed,
             drift,
             nudge_step: non_negative(

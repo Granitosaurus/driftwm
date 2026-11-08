@@ -1167,6 +1167,10 @@ pub struct DriftWm {
     /// touches a screen edge. Toggled by
     /// [`Action::ToggleCursorPan`](driftwm::config::Action::ToggleCursorPan).
     pub cursor_edge_pan: bool,
+    /// Camera mode: pointer motion pans the viewport (with drift) instead of
+    /// moving the cursor, which is hidden. Toggled by
+    /// [`Action::ToggleCameraMode`](driftwm::config::Action::ToggleCameraMode).
+    pub camera_mode: bool,
     pub touch_state: crate::input::touch::TouchState,
 }
 

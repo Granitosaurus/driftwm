@@ -84,6 +84,7 @@ pub enum Action {
     SwitchLayout(LayoutSwitch),
     ReloadConfig,
     ToggleCursorPan,
+    ToggleCameraMode,
     SetTrackpad(TrackpadState),
     Quit,
 }

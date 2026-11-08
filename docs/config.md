@@ -308,6 +308,12 @@ Default: `1.0`
 
 mouse drag pan multiplier (1.0 = direct, 0 = off)
 
+### `camera_mode_speed`
+
+Default: `3.0`
+
+pointer-to-camera multiplier while toggle-camera-mode is on (0 = off)
+
 ### `touch_speed`
 
 Default: `1.0`
@@ -780,6 +786,7 @@ Actions:
 - `fill-window` — grow the focused window into the free space around it; again to restore
 - `toggle-pin-to-screen` — pin the focused window to the screen, ignoring pan and zoom
 - `reload-config` — hot-reload the config file
+- `toggle-camera-mode` — hide the cursor and let pointer motion pan the viewport, with drift, until toggled off
 - `toggle-cursor-pan` — toggle bare-cursor edge-pan (see [navigation.edge_pan])
 - `set-trackpad on|off|toggle` — turn every trackpad on or off for this session
 - `quit` — exit the compositor
