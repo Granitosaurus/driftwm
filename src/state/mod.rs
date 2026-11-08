@@ -467,6 +467,14 @@ pub enum ModeIntent {
     Max,
 }
 
+/// See [`DriftWm::camera_mode_auto`].
+#[derive(Clone, Copy, Debug, Default)]
+pub struct CameraModeAuto {
+    pub base_zoom: f64,
+    pub speed: f64,
+    pub pending_px: f64,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ZoomAnimationAnchor {
     pub canvas: Point<f64, Logical>,
@@ -1174,6 +1182,9 @@ pub struct DriftWm {
     /// Focus intent held aside while camera mode runs, restored on exit if its
     /// window is still in view.
     pub camera_mode_prev_focus: Option<FocusIntent>,
+    /// Camera-mode auto-zoom state: the zoom to rest at, the smoothed pointer
+    /// speed (screen px/s) and the motion banked since the last tick (screen px).
+    pub camera_mode_auto: CameraModeAuto,
     pub touch_state: crate::input::touch::TouchState,
 }
 

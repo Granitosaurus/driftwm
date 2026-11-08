@@ -1385,6 +1385,7 @@ impl DriftWm {
                 Point::from((delta.x * speed / zoom, delta.y * speed / zoom)),
                 Event::time_msec(&event),
             );
+            self.camera_mode_auto.pending_px += delta.x.hypot(delta.y) * self.config.camera_mode_speed;
             // Hold the hidden cursor to its screen spot, so it is where it was
             // when camera mode ends.
             if moved.x != 0.0 || moved.y != 0.0 {

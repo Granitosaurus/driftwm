@@ -170,6 +170,12 @@ pub struct Config {
     pub camera_mode_speed: f64,
     /// Camera mode direction: false = drag the canvas (motion right shifts content right), true = the camera follows the pointer (motion right looks right).
     pub camera_mode_invert: bool,
+    /// Camera mode zooms out as the pointer moves faster and back in as it slows.
+    pub camera_mode_auto_zoom: bool,
+    /// Camera-mode motion speed (screen px/s) above which auto zoom starts zooming out.
+    pub camera_mode_auto_zoom_speed: f64,
+    /// Smallest fraction of the resting zoom auto zoom will reach.
+    pub camera_mode_auto_zoom_range: f64,
     /// Multiplier for touchscreen pan gestures.
     pub touch_speed: f64,
     /// Scroll momentum on a 0–1 scale: 0 = off, 0.5 = default, 1 = floatiest.
@@ -1000,6 +1006,18 @@ impl Config {
             "navigation.mouse_speed",
             &mut errors,
         );
+        let camera_mode_auto_zoom_speed = non_negative(
+            raw.navigation.camera_mode_auto_zoom_speed.unwrap_or(800.0),
+            "navigation.camera_mode_auto_zoom_speed",
+            &mut errors,
+        )
+        .max(1.0);
+        let camera_mode_auto_zoom_range = non_negative(
+            raw.navigation.camera_mode_auto_zoom_range.unwrap_or(0.3),
+            "navigation.camera_mode_auto_zoom_range",
+            &mut errors,
+        )
+        .clamp(0.05, 1.0);
         let camera_mode_speed = non_negative(
             raw.navigation.camera_mode_speed.unwrap_or(3.0),
             "navigation.camera_mode_speed",
@@ -1109,6 +1127,9 @@ impl Config {
             mouse_speed,
             camera_mode_speed,
             camera_mode_invert: raw.navigation.camera_mode_invert.unwrap_or(false),
+            camera_mode_auto_zoom: raw.navigation.camera_mode_auto_zoom.unwrap_or(false),
+            camera_mode_auto_zoom_speed,
+            camera_mode_auto_zoom_range,
             touch_speed,
             drift,
             nudge_step: non_negative(
