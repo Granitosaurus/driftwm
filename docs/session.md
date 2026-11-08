@@ -32,7 +32,9 @@ press, and `msg close`.
 It's draggable, resizable, raisable, and focusable like any window. Pressing
 `Enter` while it's focused, or clicking/tapping the centered name, relaunches
 the app; while the relaunch is pending the name reads `<app> launching…`. The
-new window takes over the stand-in's exact geometry and z-order slot.
+new window takes over the stand-in's exact geometry and z-order slot. By
+default that reopens the bare app; a [restore command](#restore-commands) makes
+it reopen what the window held.
 
 It's a regular action — bind it in `[keybindings]`, `[mouse]`, `[gestures]`,
 or `[touch]` like any other. The default binding is `mod+shift+q`.
@@ -181,6 +183,90 @@ name and config seeds fill the names the save lacks. With it off, the registry
 resets to the config seeds on every launch, so a `set-bookmark` or `driftwm msg
 bookmark` edit lasts only for the session. Like the camera flag, it's read at
 launch.
+
+## Restore commands
+
+A stand-in normally relaunches from its `.desktop` entry, which reopens the bare
+app — a terminal comes back as an empty shell. A **restore command** replaces
+that `Exec=` line for one window, so a relaunch can reopen what the window held:
+
+```bash
+driftwm msg restore-cmd -- kitty --directory ~/src claude --resume abc123
+```
+
+Everything after `--` is one argv, run as-is (no shell, so quote or wrap in
+`sh -c` if you need one). With no command, `restore-cmd` prints the current one
+(an empty line when unset); `--clear` removes it.
+
+### Setting one
+
+The app, or a hook inside it, is the one that knows what the window holds, so
+the usual caller is a script running **in** the window: a shell prompt hook, an
+editor autocommand, a tool's session hook. With no `--id` or `app_id`, the
+target is the window whose client process is an ancestor of the caller, found
+by walking `/proc` up from `driftwm msg`:
+
+```bash
+# bash/zsh: relaunch this terminal in the directory it is in now
+PROMPT_COMMAND='driftwm msg restore-cmd -- kitty --directory "$PWD" >/dev/null 2>&1'
+```
+
+To target another window, or a stand-in, pass `--id <ID>` (see `driftwm msg
+state`) or an `app_id` substring. A selector names a live window first and a
+stand-in second.
+
+### What the command has to do
+
+- **The window must still become a stand-in.** A restore command replaces the
+  command that is run, not the check that a stand-in can exist: the window's
+  `app_id` has to resolve to a non-terminal `.desktop` entry, as described
+  under [Suspended windows](#suspended-windows). Setting one on a window that
+  can't become a stand-in is accepted and does nothing.
+- **It should open a window with the same `app_id`.** The relaunch passes the
+  activation token in the environment, which most toolkits hand back. For apps
+  that don't, the [5-second `app_id` fallback](#relaunching--matching) adopts
+  the next window of the original `app_id` — so a command that opens a
+  differently-classed window (`kitty --class other`) is never matched and the
+  stand-in reverts to dormant.
+- **An empty command is refused**, as is one whose first word is empty.
+
+### Where it lives
+
+The command rides along everywhere the window does:
+
+- it is saved in the [session file](#the-session-file) with the window — for
+  open windows when [`restore_windows`](#restore_windows) saves them, for
+  stand-ins always — and comes back on the stand-in the next launch builds;
+- it is kept on the stand-in when the window is suspended, closed into a
+  stand-in by `suspend_on_close`, or crashes;
+- on relaunch it is handed to the window that adopts the stand-in's slot,
+  unless the app has already set its own by then, so the next suspend works the
+  same without anything re-running the hook.
+
+Sessions written before this existed load unchanged (the field is additive and
+absent from entries without a command).
+
+### Limitations
+
+- **Windows sharing a client process can't be told apart.** The target is
+  found by process, so where one process owns several windows — a
+  single-instance terminal (`kitty --single-instance`, `foot --server`), or any
+  X11 app, since every X11 window reports `xwayland-satellite`'s PID — the
+  **focused** window wins, else the first. A script in a window that isn't
+  focused will therefore set the command on the wrong one. Pass `--id` from a
+  script that can learn its window's id.
+- **Process namespaces are untested.** Sandboxes that put the client in a
+  different PID namespace (Flatpak, containers) may not match the caller's
+  ancestors; use `--id` or an `app_id` there.
+- **`msg state` doesn't show it.** Read it back with `driftwm msg restore-cmd`
+  (add `--id` for a specific window), or look in the session file.
+
+### Security
+
+The command is run as you, from the compositor's environment — which can lack
+variables your shell set, so pass what the command needs explicitly (`env
+FOO=bar …`). Anything that can reach the IPC socket (mode `0600`) can already
+run commands through `exec`, so this adds no new access.
 
 ## The session file
 
