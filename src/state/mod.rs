@@ -1180,6 +1180,9 @@ pub struct DriftWm {
     /// moving the cursor, which is hidden. Toggled by
     /// [`Action::ToggleCameraMode`](driftwm::config::Action::ToggleCameraMode).
     pub camera_mode: bool,
+    /// Focus intent held aside while camera mode runs, restored on exit if its
+    /// window is still in view.
+    pub camera_mode_prev_focus: Option<FocusIntent>,
     pub touch_state: crate::input::touch::TouchState,
 }
 

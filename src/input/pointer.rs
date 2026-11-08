@@ -221,6 +221,10 @@ impl DriftWm {
         if self.space.outputs().next().is_none() {
             return;
         }
+        // Camera mode: the hidden cursor must not click whatever is under it.
+        if self.camera_mode {
+            return;
+        }
         // A scene change and this press can share one dispatch — a bar unmaps,
         // the finger lands — and the routing below reads `pointer_over_layer`
         // and focus, which are only as fresh as the last pull.
