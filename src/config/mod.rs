@@ -168,6 +168,8 @@ pub struct Config {
     pub mouse_speed: f64,
     /// Multiplier for pointer motion while camera mode is on. 1.0 = one screen px of camera per px of motion.
     pub camera_mode_speed: f64,
+    /// Camera mode direction: false = drag the canvas (motion right shifts content right), true = the camera follows the pointer (motion right looks right).
+    pub camera_mode_invert: bool,
     /// Multiplier for touchscreen pan gestures.
     pub touch_speed: f64,
     /// Scroll momentum on a 0–1 scale: 0 = off, 0.5 = default, 1 = floatiest.
@@ -1129,6 +1131,7 @@ impl Config {
             trackpad_speed,
             mouse_speed,
             camera_mode_speed,
+            camera_mode_invert: raw.navigation.camera_mode_invert.unwrap_or(false),
             touch_speed,
             drift,
             nudge_step: non_negative(

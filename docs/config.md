@@ -314,6 +314,12 @@ Default: `3.0`
 
 pointer-to-camera multiplier while toggle-camera-mode is on (0 = off)
 
+### `camera_mode_invert`
+
+Default: `false`
+
+camera mode direction: false = drag the canvas, true = camera follows the pointer
+
 ### `touch_speed`
 
 Default: `1.0`
