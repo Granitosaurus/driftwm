@@ -1374,10 +1374,15 @@ impl DriftWm {
             let zoom = self.zoom();
             let sign = if self.config.camera_mode_invert { 1.0 } else { -1.0 };
             let speed = sign * self.config.camera_mode_speed;
-            self.drift_pan(
+            let moved = self.camera_mode_pan(
                 Point::from((delta.x * speed / zoom, delta.y * speed / zoom)),
                 Event::time_msec(&event),
             );
+            // Hold the hidden cursor to its screen spot, so it is where it was
+            // when camera mode ends.
+            if moved.x != 0.0 || moved.y != 0.0 {
+                self.warp_pointer(old_canvas + moved);
+            }
             return;
         }
 

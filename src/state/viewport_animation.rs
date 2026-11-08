@@ -354,6 +354,70 @@ impl DriftWm {
         }
     }
 
+    /// Camera-mode pan on the active output: [`Self::drift_pan`] that leaves a
+    /// zoom in flight running. The anchor's canvas point travels with the
+    /// camera, as in [`Self::edge_pan_camera_on`], so the zoom tick doesn't pull
+    /// the step back — pan and zoom blend instead of cancelling.
+    ///
+    /// Returns the delta the camera took, zero when it did not move.
+    pub fn camera_mode_pan(
+        &mut self,
+        delta: Point<f64, Logical>,
+        time_ms: u32,
+    ) -> Point<f64, Logical> {
+        let Some(output) = self.active_output() else {
+            return Point::from((0.0, 0.0));
+        };
+        if self.is_output_fullscreen(&output) {
+            return Point::from((0.0, 0.0));
+        }
+        self.user_moved_camera();
+        {
+            let mut os = super::output_state(&output);
+            os.camera_target = None;
+            os.overview_return = None;
+            if let Some(anchor) = &mut os.zoom_animation_anchor {
+                anchor.canvas += delta;
+            }
+            os.momentum.accumulate(delta, time_ms);
+            os.camera.x += delta.x;
+            os.camera.y += delta.y;
+        }
+        self.update_output_from_camera();
+        self.schedule_momentum_timer(&output);
+        delta
+    }
+
+    /// Camera-mode zoom: step the active output's zoom target by `steps`
+    /// wheel-steps around the viewport centre, leaving momentum coasting. The
+    /// cursor is hidden and frozen in this mode, so it can't be the anchor; an
+    /// anchor already in flight is kept so repeated notches compound.
+    pub fn camera_mode_zoom(&mut self, steps: f64) {
+        let Some(output) = self.active_output() else {
+            return;
+        };
+        if self.is_output_fullscreen(&output) {
+            return;
+        }
+        let factor = self.config.zoom_step.powf(steps);
+        let cur_zoom = self.zoom();
+        let base_zoom = self.zoom_target().unwrap_or(cur_zoom);
+        let target_zoom = (base_zoom * factor).clamp(self.min_zoom(), driftwm::canvas::MAX_ZOOM);
+        if target_zoom == base_zoom {
+            return;
+        }
+        self.user_moved_camera();
+        let screen = self.usable_center_screen_on(&output);
+        let canvas = self.viewport_center_canvas();
+        let mut os = super::output_state(&output);
+        if os.zoom_animation_anchor.is_none() {
+            os.zoom_animation_anchor = Some(super::ZoomAnimationAnchor { canvas, screen });
+        }
+        os.zoom_target = Some(target_zoom);
+        os.camera_target = None;
+        os.overview_return = None;
+    }
+
     /// Apply a viewport pan delta on a specific output (for grabs pinned to an output).
     /// `time_ms` is the libinput event timestamp (see [`canvas::VelocityTracker`]).
     ///
