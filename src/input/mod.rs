@@ -568,6 +568,13 @@ impl DriftWm {
         canvas_pos: Point<f64, smithay::utils::Logical>,
         pick_guard: bool,
     ) -> Option<(FocusTarget, Point<f64, smithay::utils::Logical>)> {
+        // Camera mode: the hidden cursor is over nothing, however far the
+        // canvas has scrolled, so no client sees the pointer or its input.
+        if self.camera_mode {
+            self.pointer_over_layer = false;
+            self.pointer_over_screen_space = false;
+            return None;
+        }
         // A fullscreen window occludes the Top/Bottom/Background layers on its
         // output — only Overlay renders above it (mirror compose_frame's layer
         // culling). Hit-testing the hidden layers here would route clicks to a

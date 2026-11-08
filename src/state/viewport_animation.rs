@@ -354,6 +354,45 @@ impl DriftWm {
         }
     }
 
+    /// Enter or leave camera mode. Entering sets keyboard focus aside (nothing
+    /// may type into windows the camera is about to leave) and drops the
+    /// pointer's client focus; leaving coasts on the banked momentum and gives
+    /// focus back to the window it was on, if that is still at least partly in
+    /// view.
+    pub fn set_camera_mode(&mut self, on: bool) {
+        if self.camera_mode == on {
+            return;
+        }
+        let serial = smithay::utils::SERIAL_COUNTER.next_serial();
+        if on {
+            self.camera_mode_prev_focus = self.window_focus.clone();
+            self.camera_mode = true;
+            self.clear_focus_to_empty_canvas(serial);
+            let pointer = self.seat.get_pointer().unwrap();
+            pointer.motion(
+                self,
+                None,
+                &smithay::input::pointer::MotionEvent {
+                    location: pointer.current_location(),
+                    serial,
+                    time: 0,
+                },
+            );
+            pointer.frame(self);
+        } else {
+            self.camera_mode = false;
+            // Coast out on whatever velocity the last motion banked.
+            self.launch_momentum();
+            if let Some(super::FocusIntent::Surface(target)) = self.camera_mode_prev_focus.take()
+                && let Some(window) = self.window_for_surface_root(&target.0)
+                && self.window_visible_at_least(&window, 0.1)
+            {
+                self.set_window_focus(Some(target), serial);
+            }
+            self.refresh_pointer_focus();
+        }
+    }
+
     /// Camera-mode pan on the active output: [`Self::drift_pan`] that leaves a
     /// zoom in flight running. The anchor's canvas point travels with the
     /// camera, as in [`Self::edge_pan_camera_on`], so the zoom tick doesn't pull
