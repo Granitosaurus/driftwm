@@ -719,12 +719,15 @@ pub fn init_udev(
 
     // Snapshot the wiring again once frames have flipped, to catch a CRTC
     // reassignment after the initial modeset.
-    for secs in [1u64, 3, 10] {
+    for secs in [1u64, 3, 6, 10, 20] {
         let device_for_log = Rc::clone(&device);
         if let Err(e) = event_loop.handle().insert_source(
             Timer::from_duration(Duration::from_secs(secs)),
-            move |_, _, _: &mut DriftWm| {
-                log_drm_state(&device_for_log.borrow().drm, &format!("+{secs}s"));
+            move |_, _, data: &mut DriftWm| {
+                let mut dev = device_for_log.borrow_mut();
+                let DeviceData { drm, surfaces, .. } = &mut *dev;
+                log_drm_state(drm, &format!("+{secs}s"));
+                resync_crtc_modes(drm, surfaces, data);
                 TimeoutAction::Drop
             },
         ) {
@@ -1067,6 +1070,50 @@ fn log_drm_state(drm: &DrmDevice, label: &str) {
                 size,
             );
         }
+    }
+}
+
+/// Compare each CRTC's live kernel mode with the mode driftwm believes it set.
+/// On this hardware the monitor has come up at its EDID-preferred 50 Hz while
+/// smithay's own state still said the configured 100 Hz, so `use_mode(100)`
+/// became a no-op and the screen stayed wrong. `reset_state` re-reads the
+/// kernel's state, which makes the next frame do a real modeset.
+fn resync_crtc_modes(
+    drm: &DrmDevice,
+    surfaces: &mut HashMap<crtc::Handle, SurfaceData>,
+    data: &mut DriftWm,
+) {
+    use smithay::reexports::drm::control::Device as ControlDevice;
+    for (&crtc, surface) in surfaces.iter_mut() {
+        let Some(want) = surface.output.current_mode() else {
+            continue;
+        };
+        let Some(live) = ControlDevice::get_crtc(drm, crtc)
+            .ok()
+            .and_then(|c| c.mode())
+        else {
+            continue;
+        };
+        let live_hz = live.vrefresh() as i32 * 1000;
+        if (live.size().0 as i32, live.size().1 as i32) == (want.size.w, want.size.h)
+            && live_hz == want.refresh
+        {
+            continue;
+        }
+        tracing::warn!(
+            "{}: kernel CRTC is at {}x{}@{}Hz but driftwm expects {}x{}@{}Hz; resetting DRM state",
+            surface.output.name(),
+            live.size().0,
+            live.size().1,
+            live.vrefresh(),
+            want.size.w,
+            want.size.h,
+            want.refresh / 1000,
+        );
+        if let Err(e) = surface.compositor.reset_state() {
+            tracing::warn!("Failed to reset DRM surface state: {e}");
+        }
+        data.redraws_needed.insert(surface.output.clone());
     }
 }
 
