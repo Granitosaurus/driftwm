@@ -1537,6 +1537,24 @@ impl DriftWm {
         let mut pos = pointer.current_location();
         let source = event.source();
 
+        // Camera mode: scroll is the third axis, zooming around the viewport
+        // centre while pointer motion pans. Sideways scroll has no use here and
+        // is swallowed with the rest, rather than reaching a window under the
+        // frozen cursor.
+        if self.camera_mode && !self.is_fullscreen() {
+            let v = event
+                .amount(Axis::Vertical)
+                .or_else(|| event.amount_v120(Axis::Vertical).map(|v| v * 15.0 / 120.0))
+                .unwrap_or(0.0);
+            if v != 0.0 {
+                self.camera_mode_zoom(-v / 30.0 * self.config.zoom_mouse_speed);
+            }
+            let frame = AxisFrame::new(Event::time_msec(&event));
+            pointer.axis(self, frame);
+            pointer.frame(self);
+            return;
+        }
+
         // Discrete wheel-notch bindings (wheel-up / wheel-down) run any
         // action once per notch — volume on mod+shift+scroll and the like.
         // Wheel sources only: finger and continuous scrolling have no
