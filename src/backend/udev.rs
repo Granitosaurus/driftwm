@@ -686,6 +686,8 @@ pub fn init_udev(
         return Err("Display connected but failed to create DRM surfaces".into());
     }
 
+    log_drm_state(&drm, "after surface creation");
+
     // 7. Compile background shader / load tile (shared with winit)
     // Uses first surface's mode for initial background element size (resized per-frame anyway)
     {
@@ -714,6 +716,21 @@ pub fn init_udev(
         render_formats,
         libinput,
     }));
+
+    // Snapshot the wiring again once frames have flipped, to catch a CRTC
+    // reassignment after the initial modeset.
+    for secs in [1u64, 3, 10] {
+        let device_for_log = Rc::clone(&device);
+        if let Err(e) = event_loop.handle().insert_source(
+            Timer::from_duration(Duration::from_secs(secs)),
+            move |_, _, _: &mut DriftWm| {
+                log_drm_state(&device_for_log.borrow().drm, &format!("+{secs}s"));
+                TimeoutAction::Drop
+            },
+        ) {
+            tracing::warn!("Failed to schedule DRM state snapshot: {e:?}");
+        }
+    }
 
     // 9. Register DRM event source (VBlank handler)
     let device_for_drm = Rc::clone(&device);
@@ -985,6 +1002,69 @@ fn log_drm_connectors(drm: &DrmDevice) {
                 info.interface_id(),
                 info.state(),
                 info.modes().len(),
+            );
+        }
+    }
+}
+
+/// Log the kernel's live connector -> CRTC -> plane wiring, so a CRTC whose
+/// mode and primary-plane framebuffer disagree (one output scanning out a
+/// cropped view of the other's buffer) shows up in the journal.
+fn log_drm_state(drm: &DrmDevice, label: &str) {
+    use smithay::reexports::drm::control::Device as ControlDevice;
+    let Ok(res) = ControlDevice::resource_handles(drm) else {
+        return;
+    };
+    tracing::info!("DRM state [{label}]");
+    for &handle in res.connectors() {
+        let Ok(info) = ControlDevice::get_connector(drm, handle, false) else {
+            continue;
+        };
+        if info.state() != connector::State::Connected {
+            continue;
+        }
+        let crtc = info
+            .current_encoder()
+            .and_then(|e| ControlDevice::get_encoder(drm, e).ok())
+            .and_then(|e| e.crtc());
+        tracing::info!(
+            "  connector {}-{} -> crtc {:?}",
+            info.interface().as_str(),
+            info.interface_id(),
+            crtc,
+        );
+    }
+    for &handle in res.crtcs() {
+        let Ok(info) = ControlDevice::get_crtc(drm, handle) else {
+            continue;
+        };
+        let Some(mode) = info.mode() else { continue };
+        tracing::info!(
+            "  crtc {:?}: mode {}x{}@{}Hz fb {:?}",
+            handle,
+            mode.size().0,
+            mode.size().1,
+            mode.vrefresh(),
+            info.framebuffer(),
+        );
+    }
+    if let Ok(planes) = ControlDevice::plane_handles(drm) {
+        for handle in planes {
+            let Ok(info) = ControlDevice::get_plane(drm, handle) else {
+                continue;
+            };
+            let Some(fb) = info.framebuffer() else {
+                continue;
+            };
+            let size = ControlDevice::get_framebuffer(drm, fb)
+                .map(|f| f.size())
+                .ok();
+            tracing::info!(
+                "  plane {:?}: crtc {:?} fb {:?} size {:?}",
+                handle,
+                info.crtc(),
+                fb,
+                size,
             );
         }
     }
