@@ -146,6 +146,7 @@ pub(super) struct NavigationConfig {
     pub trackpad_speed: Option<f64>,
     pub mouse_speed: Option<f64>,
     pub camera_mode_speed: Option<f64>,
+    pub camera_mode_invert: Option<bool>,
     pub touch_speed: Option<f64>,
     pub drift: Option<f64>,
     /// Renamed to `drift`; kept only so a stale value yields a migration error

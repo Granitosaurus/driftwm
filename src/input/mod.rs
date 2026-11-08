@@ -1372,9 +1372,10 @@ impl DriftWm {
         // the viewport. Drift launches on its own once motion stops.
         if self.camera_mode {
             let zoom = self.zoom();
-            let speed = self.config.camera_mode_speed;
+            let sign = if self.config.camera_mode_invert { 1.0 } else { -1.0 };
+            let speed = sign * self.config.camera_mode_speed;
             self.drift_pan(
-                Point::from((-delta.x * speed / zoom, -delta.y * speed / zoom)),
+                Point::from((delta.x * speed / zoom, delta.y * speed / zoom)),
                 Event::time_msec(&event),
             );
             return;
