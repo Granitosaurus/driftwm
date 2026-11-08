@@ -738,6 +738,13 @@ impl DriftWm {
                     }
                 }
             }
+            Action::ToggleCameraMode => {
+                self.camera_mode = !self.camera_mode;
+                if !self.camera_mode {
+                    // Coast out on whatever velocity the last motion banked.
+                    self.launch_momentum();
+                }
+            }
             Action::SetTrackpad(state) => self.set_trackpad(state),
             Action::Quit => {
                 tracing::info!("Quit action triggered — stopping compositor");

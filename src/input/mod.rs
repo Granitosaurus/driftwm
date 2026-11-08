@@ -1368,6 +1368,18 @@ impl DriftWm {
         let time = Event::time_msec(&event);
         let delta = event.delta();
 
+        // Camera mode: the pointer stays put (and hidden) while its motion pans
+        // the viewport. Drift launches on its own once motion stops.
+        if self.camera_mode {
+            let zoom = self.zoom();
+            let speed = self.config.camera_mode_speed;
+            self.drift_pan(
+                Point::from((-delta.x * speed / zoom, -delta.y * speed / zoom)),
+                Event::time_msec(&event),
+            );
+            return;
+        }
+
         // Pointer lock: freeze position, only send relative motion
         if let Some(focus) = pointer.current_focus() {
             let locked = find_constraint(&focus.0, &pointer)

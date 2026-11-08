@@ -31,7 +31,7 @@ pub fn build_cursor_elements(
     // Touch hides the pointer until the next real mouse/trackpad motion. This
     // gate also clears the KMS hardware-cursor plane on udev, since that plane
     // is driven from these same render elements.
-    if state.cursor.hidden_by_touch {
+    if state.cursor.hidden_by_touch || state.camera_mode {
         return vec![];
     }
     let pointer = state.seat.get_pointer().unwrap();

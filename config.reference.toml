@@ -143,6 +143,7 @@
 [navigation]
 # trackpad_speed = 1.5        # trackpad pan multiplier (1.0 = direct, 0 = off)
 # mouse_speed = 1.0           # mouse drag pan multiplier (1.0 = direct, 0 = off)
+# camera_mode_speed = 3.0     # pointer-to-camera multiplier while toggle-camera-mode is on (0 = off)
 # touch_speed = 1.0           # touchscreen pan multiplier (1.0 = direct, 0 = off)
 # drift = 0.5                 # momentum coast: 0 = off, 1 = floatiest
 # camera_speed = 0.3          # camera lerp factor, 0-1 (1 = instant)
@@ -360,6 +361,7 @@
 # #   toggle-scratchpad <app_id> <cmd> — hide or show the window with that app_id, spawning <cmd> if none exists;
 # #                             such apps are not session-restored (a `restore_windows = true` rule overrides)
 # #   reload-config           — hot-reload the config file
+# #   toggle-camera-mode      — hide the cursor and let pointer motion pan the viewport, with drift, until toggled off
 # #   toggle-cursor-pan       — toggle bare-cursor edge-pan (see [navigation.edge_pan])
 # #   set-trackpad on|off|toggle — turn every trackpad on or off for this session
 # #   quit                    — exit the compositor
