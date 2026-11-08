@@ -314,6 +314,24 @@ Default: `3.0`
 
 pointer-to-camera multiplier while toggle-camera-mode is on (0 = off)
 
+### `camera_mode_auto_zoom`
+
+Default: `false`
+
+camera mode zooms out as you move faster, back in as you slow
+
+### `camera_mode_auto_zoom_speed`
+
+Default: `800.0`
+
+screen px/s of motion where auto zoom starts zooming out
+
+### `camera_mode_auto_zoom_range`
+
+Default: `0.3`
+
+furthest auto zoom goes, as a fraction of the resting zoom (0.05-1)
+
 ### `camera_mode_invert`
 
 Default: `false`

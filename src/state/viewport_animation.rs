@@ -367,6 +367,10 @@ impl DriftWm {
         if on {
             self.camera_mode_prev_focus = self.window_focus.clone();
             self.camera_mode = true;
+            self.camera_mode_auto = super::CameraModeAuto {
+                base_zoom: self.zoom_target().unwrap_or(self.zoom()),
+                ..Default::default()
+            };
             self.clear_focus_to_empty_canvas(serial);
             let pointer = self.seat.get_pointer().unwrap();
             pointer.motion(
@@ -381,6 +385,11 @@ impl DriftWm {
             pointer.frame(self);
         } else {
             self.camera_mode = false;
+            if self.config.camera_mode_auto_zoom {
+                // Settle back to the zoom auto zoom was resting at.
+                let base = self.camera_mode_auto.base_zoom;
+                self.aim_camera_zoom(base);
+            }
             // Coast out on whatever velocity the last motion banked.
             self.launch_momentum();
             if let Some(super::FocusIntent::Surface(target)) = self.camera_mode_prev_focus.take()
@@ -427,22 +436,18 @@ impl DriftWm {
         delta
     }
 
-    /// Camera-mode zoom: step the active output's zoom target by `steps`
-    /// wheel-steps around the viewport centre, leaving momentum coasting. The
-    /// cursor is hidden and frozen in this mode, so it can't be the anchor; an
-    /// anchor already in flight is kept so repeated notches compound.
-    pub fn camera_mode_zoom(&mut self, steps: f64) {
+    /// Aim the active output's zoom at `target_zoom` around the viewport centre.
+    /// An anchor already in flight is kept, so repeated calls compound.
+    fn aim_camera_zoom(&mut self, target_zoom: f64) {
         let Some(output) = self.active_output() else {
             return;
         };
         if self.is_output_fullscreen(&output) {
             return;
         }
-        let factor = self.config.zoom_step.powf(steps);
-        let cur_zoom = self.zoom();
-        let base_zoom = self.zoom_target().unwrap_or(cur_zoom);
-        let target_zoom = (base_zoom * factor).clamp(self.min_zoom(), driftwm::canvas::MAX_ZOOM);
-        if target_zoom == base_zoom {
+        let target_zoom = target_zoom.clamp(self.min_zoom(), driftwm::canvas::MAX_ZOOM);
+        let current = self.zoom_target().unwrap_or(self.zoom());
+        if (target_zoom - current).abs() < current * 0.002 {
             return;
         }
         self.user_moved_camera();
@@ -455,6 +460,45 @@ impl DriftWm {
         os.zoom_target = Some(target_zoom);
         os.camera_target = None;
         os.overview_return = None;
+    }
+
+    /// Per-frame auto zoom: the faster the pointer moves, the further out the
+    /// camera sits (scale × speed held roughly constant, after Igarashi &
+    /// Hinckley's speed-dependent automatic zooming), easing back in as it
+    /// slows. Speed is low-passed with a quick attack and a slow release, so a
+    /// twitch of the nub doesn't pump the zoom and a stop doesn't snap it back.
+    pub fn tick_camera_mode_auto_zoom(&mut self, dt: Duration) {
+        if !self.camera_mode || !self.config.camera_mode_auto_zoom {
+            return;
+        }
+        const ATTACK: f64 = 0.15;
+        const RELEASE: f64 = 0.9;
+        let dt = dt.as_secs_f64().max(1e-4);
+        let auto = &mut self.camera_mode_auto;
+        let inst = std::mem::take(&mut auto.pending_px) / dt;
+        let tau = if inst > auto.speed { ATTACK } else { RELEASE };
+        auto.speed += (inst - auto.speed) * (1.0 - (-dt / tau).exp());
+        let ratio = (self.config.camera_mode_auto_zoom_speed / auto.speed.max(1e-3))
+            .clamp(self.config.camera_mode_auto_zoom_range, 1.0);
+        let target = auto.base_zoom * ratio;
+        self.aim_camera_zoom(target);
+    }
+
+    /// Camera-mode zoom: step the active output's zoom target by `steps`
+    /// wheel-steps around the viewport centre, leaving momentum coasting. The
+    /// cursor is hidden and frozen in this mode, so it can't be the anchor.
+    pub fn camera_mode_zoom(&mut self, steps: f64) {
+        let factor = self.config.zoom_step.powf(steps);
+        if self.config.camera_mode_auto_zoom {
+            // The scroll sets the zoom to rest at; auto zoom works from there.
+            let base = (self.camera_mode_auto.base_zoom * factor)
+                .clamp(self.min_zoom(), driftwm::canvas::MAX_ZOOM);
+            self.camera_mode_auto.base_zoom = base;
+            self.aim_camera_zoom(base);
+        } else {
+            let target = self.zoom_target().unwrap_or(self.zoom()) * factor;
+            self.aim_camera_zoom(target);
+        }
     }
 
     /// Apply a viewport pan delta on a specific output (for grabs pinned to an output).
@@ -734,6 +778,7 @@ impl DriftWm {
         self.apply_key_repeat();
         self.check_exec_cursor_timeout();
         self.tick_window_animations(dt);
+        self.tick_camera_mode_auto_zoom(dt);
         // Re-arm cursor edge-pan from the current cursor position before the
         // per-output velocities are applied below (disarms outputs the cursor
         // has left; keeps the active output's speed stable frame-to-frame).
