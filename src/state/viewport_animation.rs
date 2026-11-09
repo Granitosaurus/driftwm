@@ -471,12 +471,14 @@ impl DriftWm {
         if !self.camera_mode || !self.config.camera_mode_auto_zoom {
             return;
         }
-        const ATTACK: f64 = 0.15;
-        const RELEASE: f64 = 0.9;
+        let (attack, release) = (
+            self.config.camera_mode_auto_zoom_attack,
+            self.config.camera_mode_auto_zoom_release,
+        );
         let dt = dt.as_secs_f64().max(1e-4);
         let auto = &mut self.camera_mode_auto;
         let inst = std::mem::take(&mut auto.pending_px) / dt;
-        let tau = if inst > auto.speed { ATTACK } else { RELEASE };
+        let tau = if inst > auto.speed { attack } else { release };
         auto.speed += (inst - auto.speed) * (1.0 - (-dt / tau).exp());
         let ratio = (self.config.camera_mode_auto_zoom_speed / auto.speed.max(1e-3))
             .clamp(self.config.camera_mode_auto_zoom_range, 1.0);
