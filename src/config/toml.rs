@@ -150,6 +150,8 @@ pub(super) struct NavigationConfig {
     pub camera_mode_auto_zoom: Option<bool>,
     pub camera_mode_auto_zoom_speed: Option<f64>,
     pub camera_mode_auto_zoom_range: Option<f64>,
+    pub camera_mode_auto_zoom_attack: Option<f64>,
+    pub camera_mode_auto_zoom_release: Option<f64>,
     pub touch_speed: Option<f64>,
     pub drift: Option<f64>,
     /// Renamed to `drift`; kept only so a stale value yields a migration error

@@ -176,6 +176,10 @@ pub struct Config {
     pub camera_mode_auto_zoom_speed: f64,
     /// Smallest fraction of the resting zoom auto zoom will reach.
     pub camera_mode_auto_zoom_range: f64,
+    /// Seconds the smoothed speed takes to follow a speed-up (lower = zooms out sooner).
+    pub camera_mode_auto_zoom_attack: f64,
+    /// Seconds the smoothed speed takes to follow a slow-down (lower = zooms back in sooner).
+    pub camera_mode_auto_zoom_release: f64,
     /// Multiplier for touchscreen pan gestures.
     pub touch_speed: f64,
     /// Scroll momentum on a 0–1 scale: 0 = off, 0.5 = default, 1 = floatiest.
@@ -1018,6 +1022,18 @@ impl Config {
             &mut errors,
         )
         .clamp(0.05, 1.0);
+        let camera_mode_auto_zoom_attack = non_negative(
+            raw.navigation.camera_mode_auto_zoom_attack.unwrap_or(0.15),
+            "navigation.camera_mode_auto_zoom_attack",
+            &mut errors,
+        )
+        .max(0.005);
+        let camera_mode_auto_zoom_release = non_negative(
+            raw.navigation.camera_mode_auto_zoom_release.unwrap_or(0.2),
+            "navigation.camera_mode_auto_zoom_release",
+            &mut errors,
+        )
+        .max(0.005);
         let camera_mode_speed = non_negative(
             raw.navigation.camera_mode_speed.unwrap_or(3.0),
             "navigation.camera_mode_speed",
@@ -1130,6 +1146,8 @@ impl Config {
             camera_mode_auto_zoom: raw.navigation.camera_mode_auto_zoom.unwrap_or(false),
             camera_mode_auto_zoom_speed,
             camera_mode_auto_zoom_range,
+            camera_mode_auto_zoom_attack,
+            camera_mode_auto_zoom_release,
             touch_speed,
             drift,
             nudge_step: non_negative(

@@ -147,6 +147,8 @@
 # camera_mode_auto_zoom = false       # camera mode zooms out as you move faster, back in as you slow
 # camera_mode_auto_zoom_speed = 800.0 # screen px/s of motion where auto zoom starts zooming out
 # camera_mode_auto_zoom_range = 0.3   # furthest auto zoom goes, as a fraction of the resting zoom (0.05-1)
+# camera_mode_auto_zoom_attack = 0.15  # seconds to follow a speed-up (lower = zooms out sooner)
+# camera_mode_auto_zoom_release = 0.2  # seconds to follow a slow-down (lower = zooms back in sooner)
 # camera_mode_invert = false # camera mode direction: false = drag the canvas, true = camera follows the pointer
 # touch_speed = 1.0           # touchscreen pan multiplier (1.0 = direct, 0 = off)
 # drift = 0.5                 # momentum coast: 0 = off, 1 = floatiest

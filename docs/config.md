@@ -332,6 +332,18 @@ Default: `0.3`
 
 furthest auto zoom goes, as a fraction of the resting zoom (0.05-1)
 
+### `camera_mode_auto_zoom_attack`
+
+Default: `0.15`
+
+seconds to follow a speed-up (lower = zooms out sooner)
+
+### `camera_mode_auto_zoom_release`
+
+Default: `0.2`
+
+seconds to follow a slow-down (lower = zooms back in sooner)
+
 ### `camera_mode_invert`
 
 Default: `false`
