@@ -263,6 +263,8 @@ app right back, in the same place. `suspend_on_close` does this automatically
 for every client-initiated close. `[session].restore_windows` keeps your whole
 canvas saved as you work and restores it (dormant, nothing auto-launches) on the
 next start, with `restore_camera` bringing each output's view back too.
+`driftwm msg restore-cmd` gives a window its own relaunch command, so a
+terminal comes back running what it held rather than as an empty shell.
 
 See [docs/session.md](docs/session.md).
 

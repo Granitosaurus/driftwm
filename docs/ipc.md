@@ -9,8 +9,8 @@ JSON, so any language can speak it directly.
 
 Run `driftwm msg <command>` from inside a driftwm session. The commands —
 `camera`, `zoom`, `focus`, `move`, `resize`, `opacity`, `pin`, `close`,
-`suspend`, `relaunch`, `restore-cmd`, `layout`, `cursor`, `action`, `bookmark`, `screenshot`,
-`state`, `subscribe`, and `debug-counters` — with their arguments, flags, and
+`suspend`, `relaunch`, `restore-cmd`, `layout`, `cursor`, `action`, `bookmark`,
+`screenshot`, `state`, `subscribe`, and `debug-counters` — with their arguments, flags, and
 JSON reply shapes are documented in the generated [CLI reference](cli.md);
 `driftwm msg <command> --help` prints the same for one command. The conventions
 they share follow below.
@@ -164,8 +164,9 @@ explicit path.
 > [!WARNING]
 > The socket is a full control surface, not a read-only one: `action` can run
 > `exec`/`spawn`, `quit`, and `reload-config`, `relaunch` launches a
-> suspended window's app, and `restore-cmd` chooses the command it launches. It is `0600` for that reason — don't loosen the
-> permissions or bridge it over a network.
+> suspended window's app, and `restore-cmd` chooses the command it launches. It
+> is `0600` for that reason — don't loosen the permissions or bridge it over a
+> network.
 
 The protocol is one JSON **request** per line, answered by one JSON **reply**
 per line. A single connection may carry several requests; the connection stays
@@ -190,7 +191,7 @@ A window can be targeted by a **selector**: a JSON number is its stable `id`
 | close             | `{"Close":null}` / `{"Close":5}` / `{"Close":"alacritty"}`                          |
 | suspend           | `{"Suspend":null}` / `{"Suspend":5}` / `{"Suspend":"alacritty"}`                    |
 | relaunch          | `{"Relaunch":null}` / `{"Relaunch":5}` / `{"Relaunch":"alacritty"}`                 |
-| restore-cmd       | `{"RestoreCmd":{"pids":[4242]}}` (get) / `{"RestoreCmd":{"window":5,"cmd":["kitty","claude"]}}` (set) / `{"RestoreCmd":{"window":5,"clear":true}}` (clear); all fields optional |
+| restore-cmd       | `{"RestoreCmd":{"window":5}}` (get) / `{"RestoreCmd":{"window":5,"cmd":["kitty","claude"]}}` (set) / `{"RestoreCmd":{"window":5,"clear":true}}` (clear) |
 | layout            | `{"Layout":{"short":false}}`                                                        |
 | cursor            | `"Cursor"`                                                                          |
 | run action        | `{"Action":"switch-layout next"}`                                                   |
@@ -200,6 +201,12 @@ A window can be targeted by a **selector**: a JSON number is its stable `id`
 | state             | `"State"`                                                                           |
 | subscribe         | `"Subscribe"`                                                                       |
 | debug counters    | `"DebugCounters"` (reply keys are unstable — see [Debug counters](#debug-counters)) |
+
+`RestoreCmd` fields are all optional: `window` is a selector (a live window
+first, then a stand-in); without one, `pids` — the caller's ancestor PIDs,
+nearest first, which `driftwm msg` fills in for you — picks the window whose
+client process is among them. `cmd` sets (a non-empty argv with a non-empty
+first word), `clear` removes, and neither reads.
 
 ### Responses
 

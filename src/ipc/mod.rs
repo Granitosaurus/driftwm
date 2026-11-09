@@ -1069,8 +1069,12 @@ fn cmd_restore_cmd(
     state: &mut DriftWm,
 ) -> Reply {
     use crate::state::RestoreCmd;
-    if cmd.as_ref().is_some_and(|c| c[0].is_empty()) {
-        return Err("restore command must not start with an empty word".to_string());
+    // The CLI never sends an empty list, but the socket takes raw JSON.
+    if cmd
+        .as_ref()
+        .is_some_and(|c| c.first().is_none_or(|word| word.is_empty()))
+    {
+        return Err("restore command must not be empty or start with an empty word".to_string());
     }
     let target = if sel.is_some() {
         match window_by_selector(state, sel.as_ref()) {

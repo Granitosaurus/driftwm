@@ -168,7 +168,9 @@ pub enum Msg {
     ///
     /// With no `--id`/`--app-id`, the target is the window whose client process
     /// is an ancestor of this command, so a script running inside the window can
-    /// set its own. The command is stored in the session file and run as you.
+    /// set its own. Where one process owns several windows (a single-instance
+    /// terminal, any X11 app) the focused one wins; pass `--id` to be exact. The
+    /// command is stored in the session file and run as you.
     ///
     /// `--json` reply: `{"Ok":{"RestoreCmd":["kitty","claude"]}}` (get),
     /// `{"Ok":{"RestoreCmd":null}}` (unset), or `{"Ok":"Ok"}` (set/clear).

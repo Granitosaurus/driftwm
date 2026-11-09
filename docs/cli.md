@@ -277,7 +277,7 @@ Get, set, or clear the command a window relaunches with.
 
 A suspended window normally relaunches from its `.desktop` entry, which reopens the bare app. With a restore command set, the stand-in (and the saved session) relaunch with that argv instead — e.g. a terminal running a specific program. Give the command after `--`; with none, prints the current one (empty when unset).
 
-With no `--id`/`--app-id`, the target is the window whose client process is an ancestor of this command, so a script running inside the window can set its own. The command is stored in the session file and run as you.
+With no `--id`/`--app-id`, the target is the window whose client process is an ancestor of this command, so a script running inside the window can set its own. Where one process owns several windows (a single-instance terminal, any X11 app) the focused one wins; pass `--id` to be exact. The command is stored in the session file and run as you.
 
 `--json` reply: `{"Ok":{"RestoreCmd":["kitty","claude"]}}` (get), `{"Ok":{"RestoreCmd":null}}` (unset), or `{"Ok":"Ok"}` (set/clear).
 
