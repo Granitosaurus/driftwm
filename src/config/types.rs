@@ -1281,6 +1281,10 @@ pub struct OutputConfig {
     /// `None` inherits the top-level `focus_placement`; `Some(Center)` means
     /// this monitor centers despite a non-center global.
     pub focus_placement: Option<FocusPlacement>,
+    /// Zoom a navigation that resets zoom lands at on this monitor; `None`
+    /// means 1.0. Applied through [`DriftWm::navigation_target_zoom`], clamped
+    /// to `[zoom.interact_min, MAX_ZOOM]` at use.
+    pub nav_zoom: Option<f64>,
 }
 
 /// Which corner of the screen to bind a hot-corner action to.

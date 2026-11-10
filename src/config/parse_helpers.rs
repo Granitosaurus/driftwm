@@ -687,6 +687,25 @@ pub(super) fn parse_output_rule(
         parsed
     });
 
+    // Warn-and-inherit like `focus_placement`: a bad value shouldn't drop the
+    // whole entry. The upper bound is `MAX_ZOOM`; the lower one depends on
+    // `zoom.interact_min`, so it's enforced where the value is used.
+    let nav_zoom = r.nav_zoom.and_then(|z| {
+        if z > 0.0 && z <= crate::canvas::MAX_ZOOM {
+            Some(z)
+        } else {
+            collect_warn(
+                errors,
+                format!(
+                    "config: [[outputs]] nav_zoom {z} for '{}' must be in (0, {}], using 1.0",
+                    r.name,
+                    crate::canvas::MAX_ZOOM
+                ),
+            );
+            None
+        }
+    });
+
     Ok(OutputConfig {
         name: r.name,
         scale,
@@ -695,6 +714,7 @@ pub(super) fn parse_output_rule(
         mode,
         hot_corners,
         focus_placement,
+        nav_zoom,
     })
 }
 

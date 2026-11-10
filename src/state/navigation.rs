@@ -393,12 +393,25 @@ impl DriftWm {
         self.set_camera_anchor(output, anchor_canvas, anchor_screen, target_zoom);
     }
 
-    /// The zoom a navigation animates to on `output`: 1.0 when `reset_zoom`
+    /// The zoom a zoom-resetting navigation lands at on `output`: its
+    /// `[[outputs]]` `nav_zoom`, else 1.0. Clamped to `zoom.interact_min` so a
+    /// reset can never land in pick mode, where the click would not reach the
+    /// client.
+    pub(crate) fn reset_zoom_on(&self, output: &Output) -> f64 {
+        self.config
+            .output_config(&output.name())
+            .and_then(|c| c.nav_zoom)
+            .map_or(1.0, |z| {
+                z.clamp(self.config.zoom_interact_min, driftwm::canvas::MAX_ZOOM)
+            })
+    }
+
+    /// The zoom a navigation animates to on `output`: `reset_zoom_on` when `reset_zoom`
     /// (intentional navigation), else the zoom the view is heading to. The
     /// live zoom would stop a zoom animation where this frame caught it.
     pub(crate) fn navigation_target_zoom(&self, output: &Output, reset_zoom: bool) -> f64 {
         if reset_zoom {
-            1.0
+            self.reset_zoom_on(output)
         } else {
             self.landing_view_on(output).1
         }

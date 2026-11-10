@@ -1877,6 +1877,27 @@ mod tests {
     }
 
     #[test]
+    fn output_nav_zoom_parses_and_rejects_out_of_range() {
+        let toml_str = r#"
+            [[outputs]]
+            name = "eDP-1"
+            nav_zoom = 0.7
+
+            [[outputs]]
+            name = "HDMI-A-1"
+            nav_zoom = 1.5
+
+            [[outputs]]
+            name = "DP-2"
+        "#;
+        let (config, errors) = Config::from_toml_collect(toml_str).unwrap();
+        assert_eq!(config.output_config("eDP-1").unwrap().nav_zoom, Some(0.7));
+        assert_eq!(config.output_config("HDMI-A-1").unwrap().nav_zoom, None);
+        assert_eq!(config.output_config("DP-2").unwrap().nav_zoom, None);
+        assert!(errors.iter().any(|e| e.contains("nav_zoom")));
+    }
+
+    #[test]
     fn output_config_lookup() {
         let toml_str = r#"
             [[outputs]]
