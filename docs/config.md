@@ -822,7 +822,8 @@ Actions:
 - `fill-window` — grow the focused window into the free space around it; again to restore
 - `toggle-pin-to-screen` — pin the focused window to the screen, ignoring pan and zoom
 - `toggle-scratchpad <app_id> <cmd>` — hide or show the window with that app_id, spawning <cmd> if none exists; such apps are not session-restored (a `restore_windows = true` rule overrides)
-- `toggle-titlebar` — hide or show the focused window's driftwm title bar (server ↔ minimal: the border, corners and shadow stay). Windows that draw their own chrome are left alone
+- `toggle-titlebar` — hide or show the focused window's driftwm title bar (server ↔ minimal: the border, corners and shadow stay). Windows that draw their own chrome, and fit, fill or fullscreen windows, are left alone
+- `toggle-borders` — hide or show the focused window's border, drop shadow and corner clip together, so it draws as the bare client surface; again to restore. Fit, fill, fullscreen and widget windows, and `decoration = "none"` ones, are left alone
 - `reload-config` — hot-reload the config file
 - `toggle-camera-mode` — hide the cursor and let pointer motion pan the viewport, with drift, until toggled off
 - `toggle-cursor-pan` — toggle bare-cursor edge-pan (see [navigation.edge_pan])

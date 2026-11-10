@@ -85,6 +85,7 @@ impl fmt::Display for Action {
             Action::SendCursorToOutput(d) => write!(f, "send-cursor-to-output {d}"),
             Action::FocusCenter => f.write_str("focus-center"),
             Action::TogglePinToScreen => f.write_str("toggle-pin-to-screen"),
+            Action::ToggleBorders => f.write_str("toggle-borders"),
             Action::ToggleTitlebar => f.write_str("toggle-titlebar"),
             Action::SwitchLayout(target) => write!(f, "switch-layout {target}"),
             Action::ReloadConfig => f.write_str("reload-config"),
