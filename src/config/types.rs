@@ -88,6 +88,7 @@ pub enum Action {
     SendCursorToOutput(Direction),
     FocusCenter,
     TogglePinToScreen,
+    ToggleTitlebar,
     SwitchLayout(LayoutSwitch),
     ReloadConfig,
     ToggleCursorPan,
