@@ -353,7 +353,7 @@
 # #   home-toggle             — jump to the origin and back
 # #   zoom-in                 — step zoom in
 # #   zoom-out                — step zoom out
-# #   zoom-reset              — zoom to 1.0
+# #   zoom-reset              — zoom to 1.0 (or the output's nav_zoom)
 # #   go-to-bookmark <name>   — jump to a bookmark
 # #   set-bookmark <name>     — save the view's center as a bookmark
 # #   move-to-bookmark <name> — move the focused window to a bookmark
@@ -686,6 +686,9 @@
 # #   position        — "auto" (left to right) or [x, y] in layout coords.
 # #   mode            — see above (default: preferred).
 # #   focus_placement — overrides the top-level focus_placement on this monitor.
+# #   nav_zoom        — zoom a navigation that resets zoom lands at on this monitor, and
+# #                     what zoom-reset zooms to (default: 1.0; range (0, 1], raised to
+# #                     zoom.interact_min if lower).
 # #   hot_corners     — corner actions for this monitor (see below).
 # #
 # # Hot corners run any [keybindings] action when the cursor enters a corner of

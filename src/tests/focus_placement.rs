@@ -711,3 +711,39 @@ fn send_to_output_lands_on_the_targets_placement_point() {
         rect.x_high
     );
 }
+
+/// A navigation that resets zoom lands at the output's `nav_zoom`, an output
+/// without one keeps 1.0, and a value below `zoom.interact_min` is raised to it
+/// so the landing view can't be one where clicks no longer reach the client.
+#[test]
+fn reset_zoom_follows_the_outputs_nav_zoom() {
+    let mut f = Fixture::with_config(config(
+        r#"
+        [zoom]
+        interact_min = 0.5
+
+        [[outputs]]
+        name = "HEADLESS-1"
+        nav_zoom = 0.7
+
+        [[outputs]]
+        name = "HEADLESS-2"
+        nav_zoom = 0.2
+        "#,
+    ));
+    let out1 = f.add_output(1, (1920, 1080));
+    let out2 = f.add_output(2, (1920, 1080));
+    let out3 = f.add_output(3, (1920, 1080));
+
+    assert_eq!(f.state().navigation_target_zoom(&out1, true), 0.7);
+    assert_eq!(
+        f.state().navigation_target_zoom(&out2, true),
+        0.5,
+        "a nav_zoom below zoom.interact_min is raised to it"
+    );
+    assert_eq!(
+        f.state().navigation_target_zoom(&out3, true),
+        1.0,
+        "an output with no nav_zoom keeps the default"
+    );
+}

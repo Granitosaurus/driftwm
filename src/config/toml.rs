@@ -421,6 +421,7 @@ pub(super) struct OutputRuleFile {
     pub mode: Option<String>,
     pub hot_corners: Option<HotCornersFile>,
     pub focus_placement: Option<String>,
+    pub nav_zoom: Option<f64>,
 }
 
 #[derive(Serialize, Deserialize, Default)]

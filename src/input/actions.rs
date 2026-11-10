@@ -481,7 +481,10 @@ impl DriftWm {
                 self.zoom_to_anchored(new_zoom);
             }
             Action::ZoomReset => {
-                self.zoom_to_anchored(1.0);
+                let target = self
+                    .active_output()
+                    .map_or(1.0, |output| self.reset_zoom_on(&output));
+                self.zoom_to_anchored(target);
             }
             Action::ZoomToFit => {
                 if self.try_restore_overview() {
