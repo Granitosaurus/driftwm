@@ -268,6 +268,15 @@ terminal comes back running what it held rather than as an empty shell.
 
 See [docs/session.md](docs/session.md).
 
+### Decals
+
+Pin an image to the canvas as a landmark: `driftwm msg decal add sticker.png`
+drops it under the pointer, below every window. A decal is drawn by the
+compositor rather than by a client, so it can't be dragged, snapped or tiled,
+stays out of Alt-Tab, and is saved across restarts.
+
+See [docs/decals.md](docs/decals.md).
+
 ### Everything else
 
 - New window placement: snapped adjacent to whatever is in view (default), in viewport center, or under cursor
