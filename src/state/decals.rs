@@ -22,14 +22,6 @@ pub(crate) const MAX_DECAL_FILE_BYTES: u64 = 32 << 20;
 /// Longest side, in pixels, of a decal image.
 pub(crate) const MAX_DECAL_SIDE: u32 = 8192;
 
-/// An uploaded image, as buffers for both ways round. They share one GPU
-/// texture; each keeps its own element id so a flip repaints, and a still
-/// decal of either kind stays still to the damage tracker.
-pub(crate) struct DecalTexture {
-    pub(crate) upright: TextureBuffer<GlesTexture>,
-    pub(crate) flipped: TextureBuffer<GlesTexture>,
-}
-
 #[derive(Default)]
 pub struct DecalStore {
     /// Where decals are saved. `None` disables persistence.
@@ -41,11 +33,13 @@ pub struct DecalStore {
     /// is placed or loaded. A decal without one (the file vanished) is not drawn
     /// and cannot be hit.
     sizes: HashMap<PathBuf, Size<i32, Logical>>,
-    /// Uploaded images by path, filled by the renderer. The buffer is kept across
+    /// Uploaded images by path and whether mirrored, filled by the renderer. A
+    /// mirrored image is a second upload of the flipped pixels, made only when a
+    /// decal asks for it. The buffer is kept across
     /// frames so its element id is stable and the damage tracker sees a still
     /// image as still. `None` is a file that failed to decode, remembered so it
     /// is not decoded again every frame.
-    pub(crate) textures: HashMap<PathBuf, Option<DecalTexture>>,
+    pub(crate) textures: HashMap<(PathBuf, bool), Option<TextureBuffer<GlesTexture>>>,
     /// A debounced save is waiting on its timer.
     save_armed: bool,
 }
@@ -148,7 +142,8 @@ impl DriftWm {
         let removed = self.decals.items.remove(index);
         if !self.decals.items.iter().any(|d| d.path == removed.path) {
             self.decals.sizes.remove(&removed.path);
-            self.decals.textures.remove(&removed.path);
+            self.decals.textures.remove(&(removed.path.clone(), false));
+            self.decals.textures.remove(&(removed.path, true));
         }
         self.decals_changed();
         Ok(())
