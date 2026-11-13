@@ -265,6 +265,12 @@ pub enum DecalRequest {
         id: u64,
         scale: f64,
     },
+    /// Mirror decal `id` left to right, or flip it back; the topmost one under
+    /// the pointer when `None`. Replies with the decal's id.
+    Flip {
+        #[serde(default)]
+        id: Option<u64>,
+    },
 }
 
 /// One placed decal, as `decal list` reports it.
@@ -275,6 +281,9 @@ pub struct DecalInfo {
     /// Center, Y-up.
     pub position: [f64; 2],
     pub scale: f64,
+    /// Mirrored left to right.
+    #[serde(default)]
+    pub flip: bool,
 }
 
 /// The result of a request: `Ok(Response)` or a human-readable error string.
