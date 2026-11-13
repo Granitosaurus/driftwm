@@ -101,6 +101,7 @@ impl fmt::Display for MouseAction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             MouseAction::MoveWindow => f.write_str("move-window"),
+            MouseAction::MoveDecal => f.write_str("move-decal"),
             MouseAction::MoveSnappedWindows => f.write_str("move-snapped-windows"),
             MouseAction::ResizeWindow => f.write_str("resize-window"),
             MouseAction::ResizeWindowSnapped => f.write_str("resize-window-snapped"),
