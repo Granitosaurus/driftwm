@@ -22,6 +22,14 @@ pub(crate) const MAX_DECAL_FILE_BYTES: u64 = 32 << 20;
 /// Longest side, in pixels, of a decal image.
 pub(crate) const MAX_DECAL_SIDE: u32 = 8192;
 
+/// An uploaded image, as buffers for both ways round. They share one GPU
+/// texture; each keeps its own element id so a flip repaints, and a still
+/// decal of either kind stays still to the damage tracker.
+pub(crate) struct DecalTexture {
+    pub(crate) upright: TextureBuffer<GlesTexture>,
+    pub(crate) flipped: TextureBuffer<GlesTexture>,
+}
+
 #[derive(Default)]
 pub struct DecalStore {
     /// Where decals are saved. `None` disables persistence.
@@ -37,7 +45,7 @@ pub struct DecalStore {
     /// frames so its element id is stable and the damage tracker sees a still
     /// image as still. `None` is a file that failed to decode, remembered so it
     /// is not decoded again every frame.
-    pub(crate) textures: HashMap<PathBuf, Option<TextureBuffer<GlesTexture>>>,
+    pub(crate) textures: HashMap<PathBuf, Option<DecalTexture>>,
     /// A debounced save is waiting on its timer.
     save_armed: bool,
 }
@@ -124,6 +132,7 @@ impl DriftWm {
             path,
             position,
             scale,
+            flip: false,
         });
         self.decals_changed();
         Ok(id)
@@ -187,6 +196,19 @@ impl DriftWm {
     fn decals_changed(&mut self) {
         self.save_decals();
         self.mark_all_dirty();
+    }
+
+    /// Mirror decal `id` left to right, or back, and save.
+    pub(crate) fn flip_decal(&mut self, id: u64) -> Result<(), String> {
+        let decal = self
+            .decals
+            .items
+            .iter_mut()
+            .find(|d| d.id == id)
+            .ok_or_else(|| format!("no decal with id {id}"))?;
+        decal.flip = !decal.flip;
+        self.decals_changed();
+        Ok(())
     }
 
     /// Set decal `id`'s scale (a multiplier on its image size) and save.

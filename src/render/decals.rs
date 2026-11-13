@@ -4,10 +4,11 @@ use smithay::backend::allocator::Fourcc;
 use smithay::backend::renderer::ImportMem;
 use smithay::backend::renderer::element::Kind;
 use smithay::backend::renderer::element::texture::{TextureBuffer, TextureRenderElement};
-use smithay::backend::renderer::gles::{GlesRenderer, GlesTexture};
+use smithay::backend::renderer::gles::GlesRenderer;
 use smithay::utils::{Buffer, Logical, Physical, Point, Rectangle, Size, Transform};
 
 use crate::state::DriftWm;
+use crate::state::decals::DecalTexture;
 
 use super::elements::{OutputRenderElements, PixelSnapRescaleElement};
 use super::texel_src;
@@ -40,8 +41,13 @@ pub(super) fn build_decal_elements(
             }
             state.decals.textures.insert(decal.path.clone(), loaded);
         }
-        let Some(Some(buffer)) = state.decals.textures.get(&decal.path) else {
+        let Some(Some(textures)) = state.decals.textures.get(&decal.path) else {
             continue;
+        };
+        let buffer = if decal.flip {
+            &textures.flipped
+        } else {
+            &textures.upright
         };
         let Some(size) = state.decals.image_size(&decal.path) else {
             continue;
@@ -72,7 +78,7 @@ pub(super) fn build_decal_elements(
 /// Decode `path` and upload it. Pixels are premultiplied here: the renderer
 /// blends textures as premultiplied alpha, so straight alpha would leave a dark
 /// fringe around every soft edge.
-fn load(renderer: &mut GlesRenderer, path: &std::path::Path) -> Option<TextureBuffer<GlesTexture>> {
+fn load(renderer: &mut GlesRenderer, path: &std::path::Path) -> Option<DecalTexture> {
     let img = image::open(path).ok()?.into_rgba8();
     let (w, h) = img.dimensions();
     let mut raw = img.into_raw();
@@ -90,11 +96,10 @@ fn load(renderer: &mut GlesRenderer, path: &std::path::Path) -> Option<TextureBu
             false,
         )
         .ok()?;
-    Some(TextureBuffer::from_texture(
-        renderer,
-        texture,
-        1,
-        Transform::Normal,
-        None,
-    ))
+    let buffer =
+        |transform| TextureBuffer::from_texture(renderer, texture.clone(), 1, transform, None);
+    Some(DecalTexture {
+        upright: buffer(Transform::Normal),
+        flipped: buffer(Transform::Flipped),
+    })
 }
