@@ -439,6 +439,7 @@ impl DriftWm {
             camera_mode: false,
             camera_mode_prev_focus: None,
             camera_mode_auto: Default::default(),
+            camera_mode_shaper: Default::default(),
             touch_state: crate::input::touch::TouchState::new(),
         }
     }

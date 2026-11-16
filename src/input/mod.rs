@@ -1378,14 +1378,26 @@ impl DriftWm {
         // Camera mode: the pointer stays put (and hidden) while its motion pans
         // the viewport. Drift launches on its own once motion stops.
         if self.camera_mode {
+            // Curve/smoothing on: queue the motion for the per-frame tick, which
+            // shapes it and moves the camera (and the hidden cursor with it).
+            if self.config.camera_mode_shaper().active() {
+                self.camera_mode_shaper.push(delta.x, delta.y);
+                self.mark_all_dirty();
+                return;
+            }
             let zoom = self.zoom();
-            let sign = if self.config.camera_mode_invert { 1.0 } else { -1.0 };
+            let sign = if self.config.camera_mode_invert {
+                1.0
+            } else {
+                -1.0
+            };
             let speed = sign * self.config.camera_mode_speed;
             let moved = self.camera_mode_pan(
                 Point::from((delta.x * speed / zoom, delta.y * speed / zoom)),
                 Event::time_msec(&event),
             );
-            self.camera_mode_auto.pending_px += delta.x.hypot(delta.y) * self.config.camera_mode_speed;
+            self.camera_mode_auto.pending_px +=
+                delta.x.hypot(delta.y) * self.config.camera_mode_speed;
             // Hold the hidden cursor to its screen spot, so it is where it was
             // when camera mode ends.
             if moved.x != 0.0 || moved.y != 0.0 {

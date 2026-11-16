@@ -170,6 +170,14 @@ pub struct Config {
     pub camera_mode_speed: f64,
     /// Camera mode direction: false = drag the canvas (motion right shifts content right), true = the camera follows the pointer (motion right looks right).
     pub camera_mode_invert: bool,
+    /// Camera-mode gain at fast pointer speed (the gain ramps from `camera_mode_speed` up to this). 0 = flat gain.
+    pub camera_mode_speed_fast: f64,
+    /// Pointer speed (px/s) at which camera-mode gain has reached `camera_mode_speed_fast`.
+    pub camera_mode_speed_knee: f64,
+    /// Camera-mode pan smoothing (One Euro filter `mincutoff`, Hz; lower = smoother). 0 = off.
+    pub camera_mode_smoothing: f64,
+    /// Camera-mode smoothing `beta`: extra cutoff Hz per px/s of speed (higher = less lag in fast moves).
+    pub camera_mode_smoothing_beta: f64,
     /// Camera mode zooms out as the pointer moves faster and back in as it slows.
     pub camera_mode_auto_zoom: bool,
     /// Camera-mode motion speed (screen px/s) above which auto zoom starts zooming out.
@@ -318,6 +326,17 @@ pub struct Config {
 }
 
 impl Config {
+    /// Camera-mode pan shaping settings; inactive unless the curve or smoothing is set.
+    pub fn camera_mode_shaper(&self) -> crate::camera_shaper::ShaperConfig {
+        crate::camera_shaper::ShaperConfig {
+            speed: self.camera_mode_speed,
+            speed_fast: self.camera_mode_speed_fast,
+            knee: self.camera_mode_speed_knee,
+            smoothing: self.camera_mode_smoothing,
+            beta: self.camera_mode_smoothing_beta,
+        }
+    }
+
     /// Inset from the usable area to a window's visual frame, in canvas px.
     /// `outer_gap` measures to the title bar / content edge and the border lies
     /// outside it, so the frame sits one border closer — outside the usable
@@ -1039,6 +1058,26 @@ impl Config {
             "navigation.camera_mode_speed",
             &mut errors,
         );
+        let camera_mode_speed_fast = non_negative(
+            raw.navigation.camera_mode_speed_fast.unwrap_or(0.0),
+            "navigation.camera_mode_speed_fast",
+            &mut errors,
+        );
+        let camera_mode_speed_knee = non_negative(
+            raw.navigation.camera_mode_speed_knee.unwrap_or(600.0),
+            "navigation.camera_mode_speed_knee",
+            &mut errors,
+        );
+        let camera_mode_smoothing = non_negative(
+            raw.navigation.camera_mode_smoothing.unwrap_or(0.0),
+            "navigation.camera_mode_smoothing",
+            &mut errors,
+        );
+        let camera_mode_smoothing_beta = non_negative(
+            raw.navigation.camera_mode_smoothing_beta.unwrap_or(0.01),
+            "navigation.camera_mode_smoothing_beta",
+            &mut errors,
+        );
         let touch_speed = non_negative(
             raw.navigation.touch_speed.unwrap_or(1.0),
             "navigation.touch_speed",
@@ -1143,6 +1182,10 @@ impl Config {
             mouse_speed,
             camera_mode_speed,
             camera_mode_invert: raw.navigation.camera_mode_invert.unwrap_or(false),
+            camera_mode_speed_fast,
+            camera_mode_speed_knee,
+            camera_mode_smoothing,
+            camera_mode_smoothing_beta,
             camera_mode_auto_zoom: raw.navigation.camera_mode_auto_zoom.unwrap_or(false),
             camera_mode_auto_zoom_speed,
             camera_mode_auto_zoom_range,

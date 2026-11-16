@@ -367,6 +367,7 @@ impl DriftWm {
         if on {
             self.camera_mode_prev_focus = self.window_focus.clone();
             self.camera_mode = true;
+            self.camera_mode_shaper.reset();
             self.camera_mode_auto = super::CameraModeAuto {
                 base_zoom: self.zoom_target().unwrap_or(self.zoom()),
                 ..Default::default()
@@ -385,6 +386,7 @@ impl DriftWm {
             pointer.frame(self);
         } else {
             self.camera_mode = false;
+            self.camera_mode_shaper.reset();
             if self.config.camera_mode_auto_zoom {
                 // Settle back to the zoom auto zoom was resting at.
                 let base = self.camera_mode_auto.base_zoom;
@@ -460,6 +462,42 @@ impl DriftWm {
         os.zoom_target = Some(target_zoom);
         os.camera_target = None;
         os.overview_return = None;
+    }
+
+    /// Per-frame camera-mode pan: run the queued pointer motion through the
+    /// gain curve and smoothing, then pan like the direct path does. The cursor
+    /// is held to its screen spot by warping it with the camera. Runs before
+    /// [`Self::tick_camera_mode_auto_zoom`], which reads the speed it banks.
+    pub fn tick_camera_mode_pan(&mut self, dt: Duration) {
+        if !self.camera_mode {
+            return;
+        }
+        let cfg = self.config.camera_mode_shaper();
+        if !cfg.active() {
+            // Switched off by a config reload mid-mode: drop what was queued.
+            self.camera_mode_shaper.reset();
+            return;
+        }
+        let step = self.camera_mode_shaper.step(&cfg, dt.as_secs_f64());
+        if step == [0.0, 0.0] {
+            return;
+        }
+        let zoom = self.zoom();
+        let sign = if self.config.camera_mode_invert {
+            1.0
+        } else {
+            -1.0
+        };
+        let old_canvas = self.seat.get_pointer().unwrap().current_location();
+        let time_ms = super::monotonic_now().as_millis() as u32;
+        let moved = self.camera_mode_pan(
+            Point::from((step[0] * sign / zoom, step[1] * sign / zoom)),
+            time_ms,
+        );
+        self.camera_mode_auto.pending_px += step[0].hypot(step[1]);
+        if moved.x != 0.0 || moved.y != 0.0 {
+            self.warp_pointer(old_canvas + moved);
+        }
     }
 
     /// Per-frame auto zoom: the faster the pointer moves, the further out the
@@ -780,6 +818,7 @@ impl DriftWm {
         self.apply_key_repeat();
         self.check_exec_cursor_timeout();
         self.tick_window_animations(dt);
+        self.tick_camera_mode_pan(dt);
         self.tick_camera_mode_auto_zoom(dt);
         // Re-arm cursor edge-pan from the current cursor position before the
         // per-output velocities are applied below (disarms outputs the cursor

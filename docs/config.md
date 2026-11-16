@@ -314,6 +314,30 @@ Default: `3.0`
 
 pointer-to-camera multiplier while toggle-camera-mode is on (0 = off)
 
+### `camera_mode_speed_fast`
+
+Default: `0.0`
+
+gain when moving fast; the gain ramps from camera_mode_speed up to this (0 = flat gain)
+
+### `camera_mode_speed_knee`
+
+Default: `600.0`
+
+pointer px/s at which the gain has reached camera_mode_speed_fast
+
+### `camera_mode_smoothing`
+
+Default: `0.0`
+
+pan smoothing, One Euro cutoff in Hz at rest (lower = smoother, laggier; 0 = off)
+
+### `camera_mode_smoothing_beta`
+
+Default: `0.01`
+
+smoothing lets more through as you speed up: Hz per px/s (higher = less lag in fast moves)
+
 ### `camera_mode_auto_zoom`
 
 Default: `false`
