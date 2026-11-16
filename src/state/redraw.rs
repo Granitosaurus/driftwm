@@ -131,7 +131,9 @@ impl DriftWm {
         };
         // No cutoff: a frozen entry draws nothing new, but its deadline can only
         // fire from a tick, so it has to keep the loop awake.
-        camera_active || self.output_shows_window_animations(output, camera, zoom, None)
+        camera_active
+            || (self.camera_mode && self.camera_mode_shaper.is_settling())
+            || self.output_shows_window_animations(output, camera, zoom, None)
     }
 
     /// True when `output_name`'s animated background is due for its next tick

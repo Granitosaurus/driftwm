@@ -1,3 +1,4 @@
+pub mod camera_shaper;
 pub mod canvas;
 pub mod config;
 pub mod decals;

@@ -1197,6 +1197,8 @@ pub struct DriftWm {
     /// Camera-mode auto-zoom state: the zoom to rest at, the smoothed pointer
     /// speed (screen px/s) and the motion banked since the last tick (screen px).
     pub camera_mode_auto: CameraModeAuto,
+    /// Gain curve + smoothing for camera-mode pan, see [`driftwm::camera_shaper`].
+    pub camera_mode_shaper: driftwm::camera_shaper::PanShaper,
     pub touch_state: crate::input::touch::TouchState,
 }
 
