@@ -185,6 +185,7 @@ pub enum Msg {
         /// The relaunch command and its arguments.
         #[arg(last = true)]
         cmd: Vec<String>,
+    },
     /// Move a live window into a stand-in's slot.
     ///
     /// The window takes the stand-in's position, size and focus (crossfading in

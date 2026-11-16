@@ -62,6 +62,7 @@ driftwm msg --json focus --id 5
 | [`suspend`](#driftwm-msg-suspend) | Suspend the focused window, or one by `app_id` substring or `--id` |
 | [`relaunch`](#driftwm-msg-relaunch) | Relaunch a suspended window: the focused stand-in, or one by `app_id` substring or `--id` |
 | [`restore-cmd`](#driftwm-msg-restore-cmd) | Get, set, or clear the command a window relaunches with |
+| [`adopt`](#driftwm-msg-adopt) | Move a live window into a stand-in's slot |
 | [`camera`](#driftwm-msg-camera) | Get the camera position, or pan the viewport to `<x> <y>` (canvas point, Y-up) |
 | [`zoom`](#driftwm-msg-zoom) | Get the zoom level, or set it with `<level>` |
 | [`bookmark`](#driftwm-msg-bookmark) | List bookmarks, get or set one by `<name>`, or delete with `--delete` |
@@ -290,6 +291,25 @@ With no `--id`/`--app-id`, the target is the window whose client process is an a
 ```bash
 driftwm msg restore-cmd -- kitty --directory ~/src claude --resume abc123
 driftwm msg restore-cmd --clear
+```
+
+#### `driftwm msg adopt`
+
+```
+driftwm msg adopt <WINDOW> <INTO>
+```
+
+Move a live window into a stand-in's slot.
+
+The window takes the stand-in's position, size and focus (crossfading in over it) and the stand-in is removed. Both arguments are window ids from `driftwm msg state`. Refused for fullscreen, pinned, widget and dialog windows, and while either side is being dragged or resized.
+
+`--json` reply: `{"Ok":"Ok"}`.
+
+- `<WINDOW>` — Id of the live window
+- `<INTO>` — Id of the stand-in whose slot it takes
+
+```bash
+driftwm msg adopt 12 7
 ```
 
 #### `driftwm msg camera`
