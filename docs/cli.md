@@ -60,6 +60,7 @@ driftwm msg --json focus --id 5
 | [`pin`](#driftwm-msg-pin) | Get whether a window is pinned to the screen, or set it with `on`/`off` |
 | [`suspend`](#driftwm-msg-suspend) | Suspend the focused window, or one by `app_id` substring or `--id` |
 | [`relaunch`](#driftwm-msg-relaunch) | Relaunch a suspended window: the focused stand-in, or one by `app_id` substring or `--id` |
+| [`adopt`](#driftwm-msg-adopt) | Move a live window into a stand-in's slot |
 | [`camera`](#driftwm-msg-camera) | Get the camera position, or pan the viewport to `<x> <y>` (canvas point, Y-up) |
 | [`zoom`](#driftwm-msg-zoom) | Get the zoom level, or set it with `<level>` |
 | [`bookmark`](#driftwm-msg-bookmark) | List bookmarks, get or set one by `<name>`, or delete with `--delete` |
@@ -247,6 +248,25 @@ Spawns the app from its `.desktop` entry and adopts the new window into the stan
 
 ```bash
 driftwm msg relaunch firefox
+```
+
+#### `driftwm msg adopt`
+
+```
+driftwm msg adopt <WINDOW> <INTO>
+```
+
+Move a live window into a stand-in's slot.
+
+The window takes the stand-in's position, size and focus (crossfading in over it) and the stand-in is removed. Both arguments are window ids from `driftwm msg state`. Refused for fullscreen, pinned, widget and dialog windows, and while either side is being dragged or resized.
+
+`--json` reply: `{"Ok":"Ok"}`.
+
+- `<WINDOW>` — Id of the live window
+- `<INTO>` — Id of the stand-in whose slot it takes
+
+```bash
+driftwm msg adopt 12 7
 ```
 
 #### `driftwm msg camera`

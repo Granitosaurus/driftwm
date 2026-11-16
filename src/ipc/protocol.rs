@@ -93,6 +93,10 @@ pub enum Request {
     Suspend(Option<WindowSelector>),
     /// Relaunch a suspended window (the focused stand-in when `None`).
     Relaunch(Option<WindowSelector>),
+    /// Move a live window into a stand-in's slot: the window takes the
+    /// stand-in's position, size and focus, and the stand-in goes away. Both are
+    /// stage ids.
+    Adopt { window: u64, into: u64 },
     /// Run a config action by its config-grammar string, e.g. `"switch-layout
     /// next"`. Any keybindable action is reachable, so one-shot ops live here
     /// rather than as their own commands.
@@ -468,6 +472,7 @@ mod tests {
             Request::Suspend(Some(WindowSelector::Id(4))),
             Request::Relaunch(None),
             Request::Relaunch(Some(WindowSelector::AppId("foot".into()))),
+            Request::Adopt { window: 3, into: 9 },
             Request::Action("switch-layout next".into()),
             Request::Bookmark {
                 name: None,

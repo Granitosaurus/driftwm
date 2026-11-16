@@ -64,6 +64,7 @@ const EXAMPLES: &[(&str, &[&str])] = &[
     ),
     ("driftwm msg suspend", &["driftwm msg suspend firefox"]),
     ("driftwm msg relaunch", &["driftwm msg relaunch firefox"]),
+    ("driftwm msg adopt", &["driftwm msg adopt 12 7"]),
     (
         "driftwm msg camera",
         &["driftwm msg camera", "driftwm msg camera 500 300"],

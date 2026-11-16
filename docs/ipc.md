@@ -9,7 +9,7 @@ JSON, so any language can speak it directly.
 
 Run `driftwm msg <command>` from inside a driftwm session. The commands —
 `camera`, `zoom`, `focus`, `move`, `resize`, `opacity`, `pin`, `close`,
-`suspend`, `relaunch`, `layout`, `cursor`, `action`, `bookmark`, `screenshot`,
+`suspend`, `relaunch`, `adopt`, `layout`, `cursor`, `action`, `bookmark`, `screenshot`,
 `state`, `subscribe`, and `debug-counters` — with their arguments, flags, and
 JSON reply shapes are documented in the generated [CLI reference](cli.md);
 `driftwm msg <command> --help` prints the same for one command. The conventions
