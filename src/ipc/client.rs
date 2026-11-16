@@ -185,6 +185,19 @@ pub enum Msg {
         /// The relaunch command and its arguments.
         #[arg(last = true)]
         cmd: Vec<String>,
+    /// Move a live window into a stand-in's slot.
+    ///
+    /// The window takes the stand-in's position, size and focus (crossfading in
+    /// over it) and the stand-in is removed. Both arguments are window ids from
+    /// `driftwm msg state`. Refused for fullscreen, pinned, widget and dialog
+    /// windows, and while either side is being dragged or resized.
+    ///
+    /// `--json` reply: `{"Ok":"Ok"}`.
+    Adopt {
+        /// Id of the live window.
+        window: u64,
+        /// Id of the stand-in whose slot it takes.
+        into: u64,
     },
     /// Get the camera position, or pan the viewport to `<x> <y>` (canvas point, Y-up).
     ///
@@ -585,6 +598,10 @@ fn to_request(msg: &Msg) -> Result<Request, String> {
         Msg::Close { app_id, id } => Request::Close(window_selector(app_id, *id)),
         Msg::Suspend { app_id, id } => Request::Suspend(window_selector(app_id, *id)),
         Msg::Relaunch { app_id, id } => Request::Relaunch(window_selector(app_id, *id)),
+        Msg::Adopt { window, into } => Request::Adopt {
+            window: *window,
+            into: *into,
+        },
         Msg::Action { spec } => Request::Action(spec.join(" ")),
         Msg::RestoreCmd {
             app_id,

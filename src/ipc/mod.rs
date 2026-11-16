@@ -290,6 +290,7 @@ pub(crate) fn dispatch(request: Request, state: &mut DriftWm) -> Reply {
             cmd,
             clear,
         } => cmd_restore_cmd(window, &pids, cmd, clear, state),
+        Request::Adopt { window, into } => cmd_adopt(window, into, state),
         Request::Action(spec) => cmd_action(&spec, state),
         Request::Bookmark { name, to, delete } => cmd_bookmark(name, to, delete, state),
         Request::Decal(request) => cmd_decal(request, state),
@@ -314,6 +315,7 @@ fn is_mutating(request: &Request) -> bool {
             | Request::Close(_)
             | Request::Suspend(_)
             | Request::Relaunch(_)
+            | Request::Adopt { .. }
             | Request::Action(_)
             | Request::RestoreCmd { cmd: Some(_), .. }
             | Request::RestoreCmd { clear: true, .. }
@@ -1131,6 +1133,32 @@ fn cmd_suspend(sel: Option<WindowSelector>, state: &mut DriftWm) -> Reply {
         state.raise_and_focus(&window, SERIAL_COUNTER.next_serial());
     }
     cmd_action("suspend-window", state)
+}
+
+/// Move live window `window` into stand-in `into`'s slot. Unlike the relaunch
+/// paths this refuses (rather than dismisses the stand-in) when the window
+/// can't take a slot, since the caller named both ends on purpose.
+fn cmd_adopt(window: u64, into: u64, state: &mut DriftWm) -> Reply {
+    let win = window_by_selector(state, Some(&WindowSelector::Id(window)))?;
+    let sid = suspended_by_selector(state, Some(&WindowSelector::Id(into)))
+        .ok_or_else(|| format!("window {into} is not a stand-in"))?;
+    let root = win
+        .wl_surface()
+        .map(|s| s.into_owned())
+        .ok_or("window has no surface")?;
+    if state.is_window_fullscreen(&win)
+        || state.is_pinned(&win)
+        || win.is_widget()
+        || win.parent_surface().is_some()
+        || win.is_modal()
+    {
+        return Err("window is fullscreen, pinned, a widget or a dialog".to_string());
+    }
+    if state.adopt_fights_a_grab(&win, sid) {
+        return Err("either window is being dragged or resized".to_string());
+    }
+    state.resolve_placed_adopt(&win, &root, sid, crate::state::AdoptOrigin::Activation);
+    Ok(Response::Ok)
 }
 
 /// Relaunch a suspended window by selector (the focused stand-in when `None`).
