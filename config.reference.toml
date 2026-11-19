@@ -678,8 +678,8 @@
 # smoothing = 1.5             # pan smoothing, One Euro cutoff in Hz at rest (lower = smoother, laggier; 0 = off)
 # smoothing_beta = 0.01       # smoothing lets more through as you turn faster: Hz per px/s
 # settle = 1.5                # seconds of pose ignored after tracking starts, while the driver calibrates
-# invert_x = false            # flip left/right
-# invert_y = false            # flip up/down
+# invert_x = true             # flip left/right (on: pins content in space with the VITURE Pro XR)
+# invert_y = true             # flip up/down
 
 [output.outline]
 # color = "#ffffff"           # outline color for other monitors' viewports

@@ -49,9 +49,10 @@ pub struct HeadLookSettings {
     pub beta: f64,
     /// Seconds of pose ignored when tracking starts, while the driver calibrates.
     pub settle: f64,
-    /// Flip left/right.
+    /// Flip left/right. On by default: that is the direction that pins content in
+    /// space with the VITURE Pro XR's pose axes, as found on hardware.
     pub invert_x: bool,
-    /// Flip up/down.
+    /// Flip up/down. On by default, as for `invert_x`.
     pub invert_y: bool,
 }
 
@@ -67,8 +68,8 @@ impl Default for HeadLookSettings {
             smoothing: 1.5,
             beta: 0.01,
             settle: 1.5,
-            invert_x: false,
-            invert_y: false,
+            invert_x: true,
+            invert_y: true,
         }
     }
 }
@@ -222,6 +223,8 @@ mod tests {
             smoothing: 0.0,
             settle: 0.0,
             deadzone: 0.0,
+            invert_x: false,
+            invert_y: false,
             ..Default::default()
         }
     }

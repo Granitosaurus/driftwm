@@ -14,7 +14,8 @@ const TICK: Duration = Duration::from_millis(16);
 fn head_look_config(enabled: bool) -> driftwm::config::Config {
     config(&format!(
         "[head_look]\nenabled = {enabled}\noutput = \"HEADLESS-2\"\n\
-         smoothing = 0.0\nsettle = 0.0\ndeadzone = 0.0\ngain = 40.0\n"
+         smoothing = 0.0\nsettle = 0.0\ndeadzone = 0.0\ngain = 40.0\n\
+         invert_x = false\ninvert_y = false\n"
     ))
 }
 
