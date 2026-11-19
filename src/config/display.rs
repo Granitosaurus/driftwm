@@ -23,6 +23,15 @@ impl fmt::Display for Direction {
     }
 }
 
+impl fmt::Display for OutputTarget {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OutputTarget::Direction(d) => d.fmt(f),
+            OutputTarget::Name(n) => f.write_str(n),
+        }
+    }
+}
+
 impl fmt::Display for LayoutSwitch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
