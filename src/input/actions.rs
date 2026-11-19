@@ -738,6 +738,7 @@ impl DriftWm {
             Action::ToggleCameraMode => {
                 self.set_camera_mode(!self.camera_mode);
             }
+            Action::HeadLookRecenter => self.head_look_recenter(),
             Action::SetTrackpad(state) => self.set_trackpad(state),
             Action::Quit => {
                 tracing::info!("Quit action triggered — stopping compositor");

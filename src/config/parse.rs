@@ -218,6 +218,7 @@ pub fn parse_action(s: &str) -> Result<Action, String> {
         "reload-config" => Ok(Action::ReloadConfig),
         "toggle-cursor-pan" => Ok(Action::ToggleCursorPan),
         "toggle-camera-mode" => Ok(Action::ToggleCameraMode),
+        "head-look-recenter" => Ok(Action::HeadLookRecenter),
         "set-trackpad" => {
             let state = match arg {
                 None => return Err("set-trackpad requires on, off, or toggle".to_string()),
@@ -255,6 +256,7 @@ pub const ACTION_NAMES: &[(&str, &str)] = &[
     ("focus-nearest", "focus-nearest up"),
     ("go-to-bookmark", "go-to-bookmark 1"),
     ("grow-window", "grow-window up"),
+    ("head-look-recenter", "head-look-recenter"),
     ("home-toggle", "home-toggle"),
     ("move-to-bookmark", "move-to-bookmark 1"),
     ("move-to-snap", "move-to-snap up"),
@@ -667,6 +669,7 @@ mod tests {
             Action::ReloadConfig => "reload-config",
             Action::ToggleCursorPan => "toggle-cursor-pan",
             Action::ToggleCameraMode => "toggle-camera-mode",
+            Action::HeadLookRecenter => "head-look-recenter",
             Action::SetTrackpad(_) => "set-trackpad",
             Action::Quit => "quit",
         }

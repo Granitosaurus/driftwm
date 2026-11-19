@@ -2,6 +2,7 @@ pub mod camera_shaper;
 pub mod canvas;
 pub mod config;
 pub mod desktop_entry;
+pub mod head_look;
 pub mod layout;
 pub mod protocols;
 pub mod session;

@@ -27,8 +27,8 @@ use defaults::{
 };
 use parse_helpers::{
     Warnings, clamp_warn, collect_warn, non_negative, parse_backend_config,
-    parse_decoration_config, parse_effects_config, parse_focus_placement, parse_output_outline,
-    parse_output_rule, parse_window_rule, positive_or_default,
+    parse_decoration_config, parse_effects_config, parse_focus_placement, parse_head_look,
+    parse_output_outline, parse_output_rule, parse_window_rule, positive_or_default,
 };
 use toml::{ConfigFile, expand_tilde};
 
@@ -278,6 +278,8 @@ pub struct Config {
     pub inactive_cursor_opacity: f64,
     pub decorations: DecorationConfig,
     pub output_outline: OutputOutlineSettings,
+    /// Head-tracking pan of one output's camera (see [`crate::head_look`]).
+    pub head_look: crate::head_look::HeadLookSettings,
     pub nav_anchors: Vec<Point<f64, Logical>>,
     /// The bookmark registry seed: named canvas points (Y-up, window-center
     /// convention) that populate `DriftWm::bookmarks` at startup. This is a
@@ -1322,6 +1324,7 @@ impl Config {
                 "cursor.inactive_opacity",
                 &mut errors,
             ),
+            head_look: parse_head_look(raw.head_look, &mut errors),
             output_outline: parse_output_outline(
                 raw.output.outline.unwrap_or_default(),
                 &mut errors,
@@ -2853,5 +2856,41 @@ mod tests {
         std::fs::write(&path, "mod_key = \"bogus\"\n").unwrap();
         let warnings = Config::check_from(&path).unwrap();
         assert!(!warnings.is_empty());
+    }
+
+    #[test]
+    fn head_look_defaults_to_off_and_parses_its_settings() {
+        let (config, warnings) = Config::from_toml_collect("").unwrap();
+        assert!(!config.head_look.enabled);
+        assert!(warnings.is_empty());
+
+        let toml = "[head_look]\nenabled = true\noutput = \"DP-1\"\ngain = 30.0\nrange = 0.5\ninvert_x = true\n";
+        let (config, warnings) = Config::from_toml_collect(toml).unwrap();
+        assert!(warnings.is_empty(), "{warnings:?}");
+        let h = &config.head_look;
+        assert!(h.enabled && h.invert_x && !h.invert_y);
+        assert_eq!((h.output.as_str(), h.gain, h.range), ("DP-1", 30.0, 0.5));
+        assert_eq!(h.listen, "127.0.0.1:4242");
+    }
+
+    #[test]
+    fn head_look_enabled_without_an_output_is_switched_off_with_a_warning() {
+        let (config, warnings) =
+            Config::from_toml_collect("[head_look]\nenabled = true\n").unwrap();
+        assert!(!config.head_look.enabled);
+        assert!(
+            warnings.iter().any(|w| w.contains("head_look")),
+            "{warnings:?}"
+        );
+    }
+
+    #[test]
+    fn head_look_clamps_numbers_and_rejects_a_bad_listen_address() {
+        let toml = "[head_look]\ngain = 9999.0\nrange = 0.0\nlisten = \"nonsense\"\n";
+        let (config, warnings) = Config::from_toml_collect(toml).unwrap();
+        assert_eq!(config.head_look.gain, 500.0);
+        assert_eq!(config.head_look.range, 0.05);
+        assert_eq!(config.head_look.listen, "127.0.0.1:4242");
+        assert_eq!(warnings.len(), 3, "{warnings:?}");
     }
 }

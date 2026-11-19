@@ -14,6 +14,7 @@ pub(super) struct ConfigFile {
     pub zoom: ZoomConfig,
     pub snap: SnapConfig,
     pub output: OutputConfig,
+    pub head_look: HeadLookFileConfig,
     pub background: BackgroundFileConfig,
     pub decorations: DecorationFileConfig,
     pub effects: EffectsFileConfig,
@@ -233,6 +234,22 @@ pub(super) struct SnapConfig {
     /// Renamed to `centers`; kept only so a stale value yields a migration
     /// warning instead of failing the whole parse via `deny_unknown_fields`.
     pub edge_center: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Default)]
+#[serde(default, deny_unknown_fields)]
+pub(super) struct HeadLookFileConfig {
+    pub enabled: Option<bool>,
+    pub output: Option<String>,
+    pub listen: Option<String>,
+    pub gain: Option<f64>,
+    pub range: Option<f64>,
+    pub deadzone: Option<f64>,
+    pub smoothing: Option<f64>,
+    pub smoothing_beta: Option<f64>,
+    pub settle: Option<f64>,
+    pub invert_x: Option<bool>,
+    pub invert_y: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Default)]

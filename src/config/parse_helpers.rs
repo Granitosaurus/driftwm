@@ -10,7 +10,7 @@ use smithay::utils::Transform;
 
 use super::parse::{parse_key_combo, parse_mouse_binding};
 use super::toml::{
-    BackendFileConfig, DecorationFileConfig, EffectsFileConfig, HotCornersFile,
+    BackendFileConfig, DecorationFileConfig, EffectsFileConfig, HeadLookFileConfig, HotCornersFile,
     OutputOutlineConfig, OutputRuleFile, PassListFile, WindowRuleFile,
 };
 use super::types::{
@@ -152,6 +152,77 @@ pub(super) fn parse_color(s: &str) -> Option<[u8; 4]> {
             Some([r, g, b, a])
         }
         _ => None,
+    }
+}
+
+/// `[head_look]`: out-of-range numbers are clamped with a warning; an enabled
+/// section with no output, or an unparsable listen address, is switched off or
+/// reset rather than half-applied.
+pub(super) fn parse_head_look(
+    raw: HeadLookFileConfig,
+    errors: &mut Warnings,
+) -> crate::head_look::HeadLookSettings {
+    let d = crate::head_look::HeadLookSettings::default();
+    let output = raw.output.unwrap_or(d.output);
+    let mut enabled = raw.enabled.unwrap_or(d.enabled);
+    if enabled && output.trim().is_empty() {
+        collect_warn(
+            errors,
+            "config: [head_look] enabled needs an output (e.g. output = \"DP-1\"), leaving it off"
+                .to_string(),
+        );
+        enabled = false;
+    }
+    let listen = match raw.listen {
+        Some(addr) if addr.parse::<std::net::SocketAddr>().is_err() => {
+            collect_warn(
+                errors,
+                format!(
+                    "config: head_look.listen '{addr}' is not host:port, using {}",
+                    d.listen
+                ),
+            );
+            d.listen.clone()
+        }
+        Some(addr) => addr,
+        None => d.listen.clone(),
+    };
+    crate::head_look::HeadLookSettings {
+        enabled,
+        output: output.trim().to_string(),
+        listen,
+        gain: clamp_warn(
+            raw.gain.unwrap_or(d.gain),
+            1.0,
+            500.0,
+            "head_look.gain",
+            errors,
+        ),
+        range: clamp_warn(
+            raw.range.unwrap_or(d.range),
+            0.05,
+            4.0,
+            "head_look.range",
+            errors,
+        ),
+        deadzone: non_negative(
+            raw.deadzone.unwrap_or(d.deadzone),
+            "head_look.deadzone",
+            errors,
+        ),
+        smoothing: non_negative(
+            raw.smoothing.unwrap_or(d.smoothing),
+            "head_look.smoothing",
+            errors,
+        ),
+        beta: non_negative(
+            raw.smoothing_beta.unwrap_or(d.beta),
+            "head_look.smoothing_beta",
+            errors,
+        ),
+        settle: non_negative(raw.settle.unwrap_or(d.settle), "head_look.settle", errors),
+        invert_x: raw.invert_x.unwrap_or(d.invert_x),
+        invert_y: raw.invert_y.unwrap_or(d.invert_y),
     }
 }
 

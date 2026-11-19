@@ -133,6 +133,9 @@ impl DriftWm {
         // fire from a tick, so it has to keep the loop awake.
         camera_active
             || (self.camera_mode && self.camera_mode_shaper.is_settling())
+            || (self.head_look.is_settling()
+                && self.config.head_look.enabled
+                && output.name() == self.config.head_look.output)
             || self.output_shows_window_animations(output, camera, zoom, None)
     }
 
