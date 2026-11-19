@@ -46,6 +46,14 @@ impl Direction {
     }
 }
 
+/// Where `send-cursor-to-output` aims: the neighbour in a direction, or one
+/// specific output by connector name (e.g. `DP-2`).
+#[derive(Clone, Debug, PartialEq)]
+pub enum OutputTarget {
+    Direction(Direction),
+    Name(String),
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Action {
     Exec(String),
@@ -78,7 +86,7 @@ pub enum Action {
     FitWindowSnapped,
     FillWindow,
     SendToOutput(Direction),
-    SendCursorToOutput(Direction),
+    SendCursorToOutput(OutputTarget),
     FocusCenter,
     TogglePinToScreen,
     SwitchLayout(LayoutSwitch),
