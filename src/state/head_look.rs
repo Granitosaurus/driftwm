@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use smithay::output::Output;
 use smithay::reexports::calloop::generic::Generic;
-use smithay::reexports::calloop::{Interest, LoopHandle, Mode, PostAction};
+use smithay::reexports::calloop::{Interest, LoopHandle, Mode, PostAction, RegistrationToken};
 use smithay::utils::{Logical, Point};
 
 use driftwm::head_look::parse_opentrack;
@@ -15,12 +15,11 @@ use driftwm::head_look::parse_opentrack;
 use super::{DriftWm, monotonic_now, output_logical_size, output_state};
 
 /// Bind `listen` (`host:port`) and feed every pose packet into
-/// [`DriftWm::head_look`]. Bound once at startup; `[head_look]` numbers reload
-/// live, but turning it on or moving the port needs a restart.
+/// [`DriftWm::head_look`]. The returned token removes the listener again.
 pub fn start_head_look(
     event_loop: &LoopHandle<'static, DriftWm>,
     listen: &str,
-) -> std::io::Result<()> {
+) -> std::io::Result<RegistrationToken> {
     let socket = UdpSocket::bind(listen)?;
     socket.set_nonblocking(true)?;
     event_loop
@@ -31,11 +30,40 @@ pub fn start_head_look(
                 Ok(PostAction::Continue)
             },
         )
-        .map_err(|e| std::io::Error::other(e.to_string()))?;
-    Ok(())
+        .map_err(|e| std::io::Error::other(e.to_string()))
 }
 
 impl DriftWm {
+    /// Make the UDP listener match `[head_look]`: bind it when enabled, drop it
+    /// when disabled or when the address changed. Runs at startup and after every
+    /// config reload, so turning head-look on needs no restart. A failed bind is
+    /// logged and retried on the next reload.
+    pub fn sync_head_look_listener(&mut self) {
+        let cfg = &self.config.head_look;
+        let want = cfg.enabled.then(|| cfg.listen.clone());
+        if self.head_look_listener.as_ref().map(|(addr, _)| addr) == want.as_ref() {
+            return;
+        }
+        if let Some((addr, token)) = self.head_look_listener.take() {
+            self.loop_handle.remove(token);
+            self.head_look.reset();
+            tracing::info!("Head-look: stopped listening on {addr}");
+        }
+        let Some(addr) = want else {
+            return;
+        };
+        match start_head_look(&self.loop_handle, &addr) {
+            Ok(token) => {
+                tracing::info!(
+                    "Head-look: listening for OpenTrack packets on {addr}, panning {}",
+                    self.config.head_look.output
+                );
+                self.head_look_listener = Some((addr, token));
+            }
+            Err(e) => tracing::warn!("Head-look: cannot listen on {addr}: {e}"),
+        }
+    }
+
     /// Read every queued packet; only the newest pose matters, since the offset
     /// is built from the change between poses.
     fn drain_head_look(&mut self, socket: &UdpSocket) {

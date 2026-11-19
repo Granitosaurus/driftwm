@@ -263,6 +263,7 @@ impl DriftWm {
         } else {
             self.clear_error(ErrorSource::Config);
         }
+        self.sync_head_look_listener();
         self.mark_all_dirty();
         tracing::info!("Config reloaded");
     }
