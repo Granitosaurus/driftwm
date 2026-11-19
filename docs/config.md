@@ -1352,13 +1352,13 @@ seconds of pose ignored after tracking starts, while the driver calibrates
 
 ### `invert_x`
 
-Default: `false`
+Default: `true`
 
-flip left/right
+flip left/right (on: pins content in space with the VITURE Pro XR)
 
 ### `invert_y`
 
-Default: `false`
+Default: `true`
 
 flip up/down
 

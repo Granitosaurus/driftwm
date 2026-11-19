@@ -2917,11 +2917,14 @@ mod tests {
         assert!(!config.head_look.enabled);
         assert!(warnings.is_empty());
 
-        let toml = "[head_look]\nenabled = true\noutput = \"DP-1\"\ngain = 30.0\nrange = 0.5\ninvert_x = true\n";
+        let toml = "[head_look]\nenabled = true\noutput = \"DP-1\"\ngain = 30.0\nrange = 0.5\ninvert_x = false\n";
         let (config, warnings) = Config::from_toml_collect(toml).unwrap();
         assert!(warnings.is_empty(), "{warnings:?}");
         let h = &config.head_look;
-        assert!(h.enabled && h.invert_x && !h.invert_y);
+        assert!(
+            h.enabled && !h.invert_x && h.invert_y,
+            "invert_y keeps its default"
+        );
         assert_eq!((h.output.as_str(), h.gain, h.range), ("DP-1", 30.0, 0.5));
         assert_eq!(h.listen, "127.0.0.1:4242");
     }
