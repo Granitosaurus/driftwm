@@ -849,6 +849,7 @@ Actions:
 - `toggle-titlebar` — hide or show the focused window's driftwm title bar (server ↔ minimal: the border, corners and shadow stay). Windows that draw their own chrome, and fit, fill, fullscreen or widget windows, are left alone
 - `toggle-borders` — hide or show the focused window's border, drop shadow and corner clip together, so it draws as the bare client surface; again to restore. Fit, fill, fullscreen and widget windows, and `decoration = "none"` ones, are left alone
 - `reload-config` — hot-reload the config file
+- `head-look-recenter` — glide the head-look view back to neutral and take the head's current pose as the new neutral
 - `toggle-camera-mode` — hide the cursor and let pointer motion pan the viewport, with drift, until toggled off
 - `toggle-cursor-pan` — toggle bare-cursor edge-pan (see [navigation.edge_pan])
 - `set-trackpad on|off|toggle` — turn every trackpad on or off for this session
@@ -1286,6 +1287,80 @@ draw the cursor into the frame (direct scan-out stays on); fixes a stuttering cu
 Default: `0`
 
 FPS cap for screen recording and casting (0 = none; 30 or 60 trims the cost while gaming and streaming); screenshots are never capped
+
+## `[head_look]`
+
+### `enabled`
+
+Default: `false`
+
+Pan one output's camera with your head, for glasses that are just a display strapped to your face (VITURE and similar). The picture follows your head, so every nod drags the text; this moves the view the opposite way so content looks pinned in space. It is meant for small adjustments: the offset is capped at `range` times the output's size, and canvas navigation stays on the keyboard.
+
+Poses arrive as OpenTrack UDP packets (what XRLinuxDriver sends with `--opentrack-app`): six f64 x, y, z, yaw, pitch, roll in degrees, then a u32 frame number. Only yaw and pitch are used, as changes since the last packet, so the heading drifting does not walk the view away. Bind `head-look-recenter` to glide back to neutral after reaching the limit.
+
+Turning on, `output` and `listen` are read at startup; the numbers reload live.
+
+listen for head-tracking packets
+
+### `output`
+
+Default: `""`
+
+connector name of the glasses output (e.g. "DP-1"); required when enabled
+
+### `listen`
+
+Default: `"127.0.0.1:4242"`
+
+UDP host:port to listen on
+
+### `gain`
+
+Default: `45.0`
+
+screen px per degree of head rotation (1–500)
+
+### `range`
+
+Default: `1.0`
+
+furthest the head pans, as a fraction of the output's size (0.05–4)
+
+### `deadzone`
+
+Default: `0.5`
+
+head speed in deg/s below which motion is ignored, hides sensor drift
+
+### `smoothing`
+
+Default: `1.5`
+
+pan smoothing, One Euro cutoff in Hz at rest (lower = smoother, laggier; 0 = off)
+
+### `smoothing_beta`
+
+Default: `0.01`
+
+smoothing lets more through as you turn faster: Hz per px/s
+
+### `settle`
+
+Default: `1.5`
+
+seconds of pose ignored after tracking starts, while the driver calibrates
+
+### `invert_x`
+
+Default: `false`
+
+flip left/right
+
+### `invert_y`
+
+Default: `false`
+
+flip up/down
 
 ## `[output.outline]`
 

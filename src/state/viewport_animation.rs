@@ -819,6 +819,7 @@ impl DriftWm {
         self.check_exec_cursor_timeout();
         self.tick_window_animations(dt);
         self.tick_camera_mode_pan(dt);
+        self.tick_head_look(dt);
         self.tick_camera_mode_auto_zoom(dt);
         // Re-arm cursor edge-pan from the current cursor position before the
         // per-output velocities are applied below (disarms outputs the cursor

@@ -18,6 +18,7 @@ pub mod fill;
 pub mod fit;
 mod focus;
 mod fullscreen;
+mod head_look;
 mod init;
 mod keyboard_focus;
 mod keyboard_snap;
@@ -390,6 +391,8 @@ pub(crate) fn prepare_child() -> std::io::Result<()> {
 
 /// The current time on `CLOCK_MONOTONIC`, the clock driftwm advertises for
 /// presentation times. A capture client lines its audio up against these stamps.
+pub use head_look::start_head_look;
+
 pub fn monotonic_now() -> std::time::Duration {
     smithay::utils::Clock::<smithay::utils::Monotonic>::new()
         .now()
@@ -1199,6 +1202,8 @@ pub struct DriftWm {
     pub camera_mode_auto: CameraModeAuto,
     /// Gain curve + smoothing for camera-mode pan, see [`driftwm::camera_shaper`].
     pub camera_mode_shaper: driftwm::camera_shaper::PanShaper,
+    /// Head-tracking offset for the `[head_look]` output, see [`driftwm::head_look`].
+    pub head_look: driftwm::head_look::HeadLook,
     pub touch_state: crate::input::touch::TouchState,
 }
 

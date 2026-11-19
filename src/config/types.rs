@@ -102,6 +102,7 @@ pub enum Action {
     ReloadConfig,
     ToggleCursorPan,
     ToggleCameraMode,
+    HeadLookRecenter,
     SetTrackpad(TrackpadState),
     Quit,
 }
