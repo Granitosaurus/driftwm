@@ -673,7 +673,7 @@
 # output = ""                 # connector name of the glasses output (e.g. "DP-1"); required when enabled
 # listen = "127.0.0.1:4242"   # UDP host:port to listen on
 # gain = 45.0                 # screen px per degree of head rotation (1–500)
-# range = 1.0                 # furthest the head pans, as a fraction of the output's size (0.05–4)
+# range = 1.0                 # furthest the head pans, as a fraction of the output's size (0.05 and up; no upper cap)
 # deadzone = 0.5              # head speed in deg/s below which motion is ignored, hides sensor drift
 # smoothing = 1.5             # pan smoothing, One Euro cutoff in Hz at rest (lower = smoother, laggier; 0 = off)
 # smoothing_beta = 0.01       # smoothing lets more through as you turn faster: Hz per px/s
