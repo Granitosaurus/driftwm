@@ -391,8 +391,6 @@ pub(crate) fn prepare_child() -> std::io::Result<()> {
 
 /// The current time on `CLOCK_MONOTONIC`, the clock driftwm advertises for
 /// presentation times. A capture client lines its audio up against these stamps.
-pub use head_look::start_head_look;
-
 pub fn monotonic_now() -> std::time::Duration {
     smithay::utils::Clock::<smithay::utils::Monotonic>::new()
         .now()
@@ -1204,6 +1202,8 @@ pub struct DriftWm {
     pub camera_mode_shaper: driftwm::camera_shaper::PanShaper,
     /// Head-tracking offset for the `[head_look]` output, see [`driftwm::head_look`].
     pub head_look: driftwm::head_look::HeadLook,
+    /// The bound head-look UDP listener and the address it is on.
+    pub head_look_listener: Option<(String, smithay::reexports::calloop::RegistrationToken)>,
     pub touch_state: crate::input::touch::TouchState,
 }
 

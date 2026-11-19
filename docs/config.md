@@ -1298,7 +1298,7 @@ Pan one output's camera with your head, for glasses that are just a display stra
 
 Poses arrive as OpenTrack UDP packets (what XRLinuxDriver sends with `--opentrack-app`): six f64 x, y, z, yaw, pitch, roll in degrees, then a u32 frame number. Only yaw and pitch are used, as changes since the last packet, so the heading drifting does not walk the view away. Bind `head-look-recenter` to glide back to neutral after reaching the limit.
 
-Turning on, `output` and `listen` are read at startup; the numbers reload live.
+Everything reloads live: turning it on or off, or moving `listen`, binds or drops the listener on the next config reload.
 
 listen for head-tracking packets
 

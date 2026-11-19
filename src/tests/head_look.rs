@@ -106,3 +106,31 @@ fn recenter_returns_the_camera_to_where_the_keyboard_left_it() {
         "{end:?}"
     );
 }
+
+/// The listener follows `[head_look]` through reloads, so turning head-look on
+/// (or off, or moving the port) never needs a compositor restart. Port 0 keeps
+/// the test off any real driver's port.
+#[test]
+fn listener_follows_config_reloads() {
+    let mut f = Fixture::with_config(config(""));
+    assert!(f.state().head_look_listener.is_none());
+
+    let on = "[head_look]\nenabled = true\noutput = \"DP-1\"\nlisten = \"127.0.0.1:0\"\n";
+    f.state().reload_config_from_contents(on);
+    assert!(
+        f.state().head_look_listener.is_some(),
+        "bound after enabling"
+    );
+
+    f.state().reload_config_from_contents(on);
+    assert!(
+        f.state().head_look_listener.is_some(),
+        "an unchanged reload keeps it"
+    );
+
+    f.state().reload_config_from_contents("");
+    assert!(
+        f.state().head_look_listener.is_none(),
+        "dropped after disabling"
+    );
+}

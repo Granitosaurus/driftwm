@@ -679,7 +679,8 @@
 # # the heading drifting does not walk the view away. Bind `head-look-recenter`
 # # to glide back to neutral after reaching the limit.
 # #
-# # Turning on, `output` and `listen` are read at startup; the numbers reload live.
+# # Everything reloads live: turning it on or off, or moving `listen`, binds or
+# # drops the listener on the next config reload.
 # enabled = false             # listen for head-tracking packets
 # output = ""                 # connector name of the glasses output (e.g. "DP-1"); required when enabled
 # listen = "127.0.0.1:4242"   # UDP host:port to listen on

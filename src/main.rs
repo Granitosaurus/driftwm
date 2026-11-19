@@ -248,16 +248,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => tracing::warn!("IPC server failed to start: {e}"),
     }
 
-    if data.config.head_look.enabled {
-        let listen = data.config.head_look.listen.clone();
-        match state::start_head_look(&event_loop.handle(), &listen) {
-            Ok(()) => tracing::info!(
-                "Head-look: listening for OpenTrack packets on {listen}, panning {}",
-                data.config.head_look.output
-            ),
-            Err(e) => tracing::warn!("Head-look: cannot listen on {listen}: {e}"),
-        }
-    }
+    data.sync_head_look_listener();
 
     // Export only session-level vars to systemd and D-Bus. Pass them through
     // Command::env() rather than relying on process env — the policy is "don't
