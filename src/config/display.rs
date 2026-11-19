@@ -99,6 +99,7 @@ impl fmt::Display for Action {
             Action::SwitchLayout(target) => write!(f, "switch-layout {target}"),
             Action::ReloadConfig => f.write_str("reload-config"),
             Action::ToggleCameraMode => f.write_str("toggle-camera-mode"),
+            Action::HeadLookRecenter => f.write_str("head-look-recenter"),
             Action::ToggleCursorPan => f.write_str("toggle-cursor-pan"),
             Action::SetTrackpad(state) => write!(f, "set-trackpad {state}"),
             Action::Quit => f.write_str("quit"),
