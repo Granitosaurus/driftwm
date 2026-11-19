@@ -201,7 +201,7 @@ pub(super) fn parse_head_look(
         range: clamp_warn(
             raw.range.unwrap_or(d.range),
             0.05,
-            4.0,
+            f64::MAX,
             "head_look.range",
             errors,
         ),
