@@ -207,8 +207,14 @@ pub fn parse_action(s: &str) -> Result<Action, String> {
             Ok(Action::SendToOutput(dir))
         }
         "send-cursor-to-output" => {
-            let dir = parse_direction(arg.ok_or("send-cursor-to-output requires a direction")?)?;
-            Ok(Action::SendCursorToOutput(dir))
+            let arg = arg.ok_or("send-cursor-to-output requires a direction or output name")?;
+            // A direction keyword wins; anything else is an output name
+            // (connector names such as "DP-2" never collide with them).
+            let target = match parse_direction(arg) {
+                Ok(dir) => OutputTarget::Direction(dir),
+                Err(_) => OutputTarget::Name(arg.trim().to_string()),
+            };
+            Ok(Action::SendCursorToOutput(target))
         }
         "switch-layout" => {
             let arg = arg.ok_or("switch-layout requires next, prev, or a layout index")?;
@@ -835,5 +841,18 @@ mod tests {
                 ..Modifiers::EMPTY
             }
         );
+    }
+
+    #[test]
+    fn send_cursor_to_output_takes_direction_or_name() {
+        assert_eq!(
+            parse_action("send-cursor-to-output up").unwrap(),
+            Action::SendCursorToOutput(OutputTarget::Direction(Direction::Up))
+        );
+        assert_eq!(
+            parse_action("send-cursor-to-output DP-2").unwrap(),
+            Action::SendCursorToOutput(OutputTarget::Name("DP-2".to_string()))
+        );
+        assert!(parse_action("send-cursor-to-output").is_err());
     }
 }

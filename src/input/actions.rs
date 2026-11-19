@@ -11,7 +11,9 @@ use std::os::unix::fs::PermissionsExt;
 
 use crate::state::{DriftWm, HomeReturn, NavZoom, RevealPan, StageWindow};
 use driftwm::canvas::{self};
-use driftwm::config::{Action, Direction, LayoutSwitch, Modifiers, SendEvents, TrackpadState};
+use driftwm::config::{
+    Action, Direction, LayoutSwitch, Modifiers, OutputTarget, SendEvents, TrackpadState,
+};
 use driftwm::window_ext::WindowExt;
 
 /// Use the focused window as the cone-search origin only when it's fully
@@ -669,15 +671,24 @@ impl DriftWm {
                 // the session-store debounce.
                 self.session_store_mark_dirty();
             }
-            Action::SendCursorToOutput(dir) => {
+            Action::SendCursorToOutput(target) => {
                 // The cursor's output (active_output), not keyboard focus or
                 // focus_follows_mouse: absolute devices stay pinned to it.
                 let Some(from_output) = self.active_output() else {
                     return;
                 };
-                let Some(target_output) = self.output_in_direction(&from_output, dir) else {
+                let target_output = match target {
+                    OutputTarget::Direction(dir) => self.output_in_direction(&from_output, dir),
+                    OutputTarget::Name(name) => {
+                        self.space.outputs().find(|o| o.name() == *name).cloned()
+                    }
+                };
+                let Some(target_output) = target_output else {
                     return;
                 };
+                if target_output == from_output {
+                    return;
+                }
 
                 // Center of the target output's usable area in canvas coords,
                 // excluding layer-shell exclusive zones (panels). Deliberately

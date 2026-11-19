@@ -382,7 +382,7 @@
 # #   set-trackpad on|off|toggle — turn every trackpad on or off for this session
 # #   quit                    — exit the compositor
 # #   send-to-output <dir>    — move the focused window to the adjacent output
-# #   send-cursor-to-output <dir>  — move the cursor to the adjacent output
+# #   send-cursor-to-output <dir|name>  — move the cursor to the adjacent output, or to the output with that name (e.g. DP-2)
 # #   switch-layout <target>  — keyboard layout: next, prev, or a 0-based index
 # #   none                    — unbind this key combo
 # #
