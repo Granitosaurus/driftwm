@@ -819,6 +819,7 @@ Actions:
 - `spawn <cmd>` — run a command (no loading cursor; keeps fullscreen)
 - `close-window` — close the focused window
 - `suspend-window` — close the focused window, leaving a suspended stand-in (needs a .desktop entry); on a stand-in, dismiss it
+- `toggle-obscure` — cover the focused window's picture with a mosaic (screen recordings and screenshots see it too); press again to restore. Runtime only: not saved with the session
 - `nudge-window <dir>` — move the focused window by nudge_step screen px
 - `move-to-snap <dir>` — move the focused window to the next snap stop that way, else by nudge_step screen px; never onto another window
 - `grow-window <dir>` — push the focused window's `<dir>` edge out by resize_step screen px
@@ -1324,7 +1325,7 @@ screen px per degree of head rotation (1–500)
 
 Default: `1.0`
 
-furthest the head pans, as a fraction of the output's size (0.05–4)
+furthest the head pans, as a fraction of the output's size (0.05 and up; no upper cap)
 
 ### `deadzone`
 
