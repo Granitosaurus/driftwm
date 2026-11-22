@@ -66,6 +66,7 @@ impl fmt::Display for Action {
             }
             Action::CloseWindow => f.write_str("close-window"),
             Action::SuspendWindow => f.write_str("suspend-window"),
+            Action::ToggleObscure => f.write_str("toggle-obscure"),
             Action::NudgeWindow(d) => write!(f, "nudge-window {d}"),
             Action::MoveToSnap(d) => write!(f, "move-to-snap {d}"),
             Action::GrowWindow(d) => write!(f, "grow-window {d}"),
